@@ -38,7 +38,7 @@ int main(){
 
     GLFWwindow *window;
     int width =500, height = 500;
-    window = glfwCreateWindow(width, height, "Tutorial 01", NULL, NULL);
+    window = glfwCreateWindow(width, height, "Shadow Puppet", NULL, NULL);
     if(window==NULL){
         std::cout<<"Error: failed to open window";
         glfwTerminate();
@@ -85,6 +85,18 @@ int main(){
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, 3*number_of_vertices*sizeof(float),  &V[0], GL_DYNAMIC_DRAW);
 
+    unsigned int* indices = new unsigned int [3*number_of_faces]; // create array containing position of vertices.
+    for(int i=0; i<3*number_of_faces; i+=3){
+        indices[i]=FV[i]-1;
+        indices[i+1]=FV[i+1]-1;
+        indices[i+2]=FV[i+2]-1;   
+    }
+
+    GLuint IBO;
+    glGenBuffers(1, &IBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3*number_of_faces*sizeof(unsigned int), indices, GL_DYNAMIC_DRAW); 
+
     GLuint colorbuffer;
     glGenBuffers(1, &colorbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
@@ -104,6 +116,9 @@ int main(){
 
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+        GLint posAttrib = glGetAttribLocation(programID, "position");
+        glEnableVertexAttribArray(posAttrib);
         glVertexAttribPointer(
             0,
             3,
@@ -122,7 +137,7 @@ int main(){
             0,  
             (void*)0
         );
-        glDrawArrays(GL_TRIANGLES, 0,3*number_of_faces);
+          glDrawElements(GL_TRIANGLES, 3*number_of_faces,  GL_UNSIGNED_INT,0);
         glDisableVertexAttribArray(0);
 
         glfwSwapBuffers(window);
