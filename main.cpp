@@ -14,6 +14,21 @@
 
 int main(){
 
+    unsigned char * texture_data;
+	int texture_width, texture_height;
+	texture_data = readBMP("sheet3.bmp", &texture_width, &texture_height);GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    float *V, *N, *VT;
+    int number_of_faces, *FV, *FN, *FT, number_of_vertices;
+    ObjFile mesh("plane.obj");
+	mesh.get_mesh_data(mesh, &FV, &FN, &FT, &VT, &N, &V, &number_of_faces, &number_of_vertices);
+	std::cout<<"tree built \n";
+
     if(!glfwInit()){ // initialize GLFW
         std::cout<<"Error: failed to initialize GLFW \n";
         return -1;
@@ -25,8 +40,8 @@ int main(){
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow *window;
-    int width =1080, height = 720;
-    window = glfwCreateWindow(width, height, "Tutorial 01", NULL, NULL);
+    int width = 500, height = 500;
+    window = glfwCreateWindow(width, height, "Real-time Shadows", NULL, NULL);
     if(window==NULL){
         std::cout<<"Error: failed to open window";
         glfwTerminate();
@@ -43,5 +58,8 @@ int main(){
         glfwPollEvents();
     }while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0);
 
+
+    delete [] texture_data;
+    ObjFile::clean_up(V,N, VT, FV, FN, FT);
     return 0;
 }
