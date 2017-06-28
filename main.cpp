@@ -7,6 +7,9 @@
 #include <string>
 #include <cstdio>
 #include <vector>
+#include "shader.hpp"
+#include "Read_Obj.hpp"
+#include "BITMAP.hpp"
 #include <glm/gtx/transform.hpp>
 
 int main(){
@@ -38,9 +41,7 @@ int main(){
      do{        
         glfwSwapBuffers(window);
         glfwPollEvents();
-    }
-
-    while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0);
+    }while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0);
 
     return 0;
 }
