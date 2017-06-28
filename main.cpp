@@ -53,6 +53,7 @@ int main(){
     }
     
 //CAMERA POSITION DATA-----------------------------------------------------------------------------------------
+    glm::vec3 LightPos = glm::vec3(0,0,60.0f);
     glm::mat4 ViewMatrix =  glm::lookAt(
                             glm::vec3(0,0,-4), // position of camera
                             glm::vec3(0,0,1),  // look at vector
@@ -108,14 +109,22 @@ int main(){
     glBufferData(GL_ARRAY_BUFFER, 2*number_of_vertices*sizeof(float),  &VT[0], GL_STATIC_DRAW);
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+    GLuint normalbuffer;
+    glGenBuffers(1, &normalbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glBufferData(GL_ARRAY_BUFFER, 3*number_of_vertices, &N[0], GL_STATIC_DRAW);
+
     GLuint programID = LoadShaders("VertexShader.vertexshader", "FragmentShader.fragmentshader");
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+    GLuint LightID = glGetUniformLocation(programID, "LightPos");
 
     do{
         
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         glUseProgram(programID);
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+        glUniform3fv(LightID, 3, &LightPos[0]);
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -143,7 +152,17 @@ int main(){
             0,  
             (void*)0
         );
-          glDrawElements(GL_TRIANGLES, 3*number_of_faces,  GL_UNSIGNED_INT,0);
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+        glVertexAttribPointer(
+            2,                                // attribute
+            3,                                // size
+            GL_FLOAT,                         // type
+            GL_FALSE,                         // normalized?
+            0,                                // stride
+            (void*)0                          // array buffer offset
+        );
+        glDrawElements(GL_TRIANGLES, 3*number_of_faces,  GL_UNSIGNED_INT,0);
         glDisableVertexAttribArray(0);
 
         glfwSwapBuffers(window);
@@ -159,6 +178,7 @@ int main(){
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &colorbuffer);
     glDeleteBuffers(1,&IBO);
+    glDeleteBuffers(1, &normalbuffer);
 
     return 0;
 }
