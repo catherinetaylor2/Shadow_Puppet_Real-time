@@ -39,6 +39,7 @@ int main(){
     GLFWwindow *window;
     int width =500, height = 500;
     window = glfwCreateWindow(width, height, "Shadow Puppet", NULL, NULL);
+    
     if(window==NULL){
         std::cout<<"Error: failed to open window";
         glfwTerminate();
@@ -51,21 +52,23 @@ int main(){
         return -1;
     }
     
+//CAMERA POSITION DATA-----------------------------------------------------------------------------------------
     glm::mat4 ViewMatrix =  glm::lookAt(
                             glm::vec3(0,0,-4), // position of camera
                             glm::vec3(0,0,1),  // look at vector
                             glm::vec3(0,1,0)  //look up vector
     );
-
-    glm::mat4 ModelMatrix = glm::mat4(1.0f); //Create MVP matrices.
+    glm::mat4 ModelMatrix = glm::mat4(0.5f); //Create MVP matrices.
     ModelMatrix[3].w = 1.0;
     glm::mat4 projectionMatrix = glm::perspective(
-        glm::radians (90.0f),         //FOV
+        glm::radians (45.0f),         //FOV
         (float)width/(float)height, // Aspect Ratio. 
         0.1f,        // Near clipping plane. 
         100.0f       // Far clipping plane.
     );
     glm::mat4 MVP = projectionMatrix*ViewMatrix*ModelMatrix;
+//-------------------------------------------------------------------------------------------------------------
+
     GLuint textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -80,6 +83,8 @@ int main(){
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+// Screen texture data:
     GLuint vertexbuffer;
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -101,6 +106,7 @@ int main(){
     glGenBuffers(1, &colorbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
     glBufferData(GL_ARRAY_BUFFER, 2*number_of_vertices*sizeof(float),  &VT[0], GL_STATIC_DRAW);
+//---------------------------------------------------------------------------------------------------------------------------------------------------
 
     GLuint programID = LoadShaders("VertexShader.vertexshader", "FragmentShader.fragmentshader");
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
@@ -147,10 +153,12 @@ int main(){
     while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0);
 
     delete [] texture_data;
+    delete [] indices;
     ObjFile::clean_up(V,N, VT, FV, FN, FT);
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &colorbuffer);
+    glDeleteBuffers(1,&IBO);
 
     return 0;
 }
