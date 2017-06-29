@@ -13,8 +13,6 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
 
-
-
 int main(){
 
     unsigned char * texture_data;
@@ -61,7 +59,7 @@ int main(){
                             glm::vec3(0,0,1),  // look at vector
                             glm::vec3(0,-1,0)  //look up vector
     );
-    glm::mat4 M = glm::mat4(0.5f); //Create MVP matrices.
+    glm::mat4 M = glm::mat4(0.65f); //Create MVP matrices.
     M[3].w = 1.0;
     glm::mat4 projectionMatrix = glm::perspective(
         glm::radians (45.0f),         //FOV
@@ -78,7 +76,6 @@ int main(){
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
@@ -110,7 +107,6 @@ int main(){
     glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
     glBufferData(GL_ARRAY_BUFFER, 2*number_of_vertices*sizeof(float),  &VT[0], GL_STATIC_DRAW);
 //---------------------------------------------------------------------------------------------------------------------------------------------------
-
 
     GLuint normalbuffer;
     glGenBuffers(1, &normalbuffer);
