@@ -11,6 +11,8 @@
 #include "BITMAP.hpp"
 #include"Read_Obj.hpp"
 #include <glm/gtx/transform.hpp>
+#include <glm/glm.hpp>
+
 
 
 int main(){
@@ -19,10 +21,10 @@ int main(){
 	int texture_width, texture_height;
 	texture_data = readBMP("sheet3.bmp", &texture_width, &texture_height);
 
-    float *V, *N, *VT;
+    float *Vx, *N, *VT;
     int number_of_faces, *FV, *FN, *FT, number_of_vertices;
-    ObjFile mesh("plane.obj");
-	mesh.get_mesh_data(mesh, &FV, &FN, &FT, &VT, &N, &V, &number_of_faces, &number_of_vertices);
+    ObjFile mesh("plane2.obj");
+	mesh.get_mesh_data(mesh, &FV, &FN, &FT, &VT, &N, &Vx, &number_of_faces, &number_of_vertices);
 	std::cout<<"tree built \n";
 
     if(!glfwInit()){ // initialize GLFW
@@ -53,21 +55,21 @@ int main(){
     }
     
 //CAMERA POSITION DATA-----------------------------------------------------------------------------------------
-    glm::vec3 LightPos = glm::vec3(0,0,60.0f);
-    glm::mat4 ViewMatrix =  glm::lookAt(
+    glm::vec3 LightPos = glm::vec3(0.0f,0.0f, 50.0f);
+    glm::mat4 V =  glm::lookAt(
                             glm::vec3(0,0,-4), // position of camera
                             glm::vec3(0,0,1),  // look at vector
-                            glm::vec3(0,1,0)  //look up vector
+                            glm::vec3(0,-1,0)  //look up vector
     );
-    glm::mat4 ModelMatrix = glm::mat4(0.5f); //Create MVP matrices.
-    ModelMatrix[3].w = 1.0;
+    glm::mat4 M = glm::mat4(0.5f); //Create MVP matrices.
+    M[3].w = 1.0;
     glm::mat4 projectionMatrix = glm::perspective(
         glm::radians (45.0f),         //FOV
         (float)width/(float)height, // Aspect Ratio. 
         0.1f,        // Near clipping plane. 
         100.0f       // Far clipping plane.
     );
-    glm::mat4 MVP = projectionMatrix*ViewMatrix*ModelMatrix;
+    glm::mat4 MVP = projectionMatrix*V*M;
 //-------------------------------------------------------------------------------------------------------------
 
     GLuint textureID;
@@ -89,7 +91,7 @@ int main(){
     GLuint vertexbuffer;
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, 3*number_of_vertices*sizeof(float),  &V[0], GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3*number_of_vertices*sizeof(float),  &Vx[0], GL_DYNAMIC_DRAW);
 
     unsigned int* indices = new unsigned int [3*number_of_faces]; // create array containing position of vertices.
     for(int i=0; i<3*number_of_faces; i+=3){
@@ -124,7 +126,7 @@ int main(){
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         glUseProgram(programID);
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-        glUniform3fv(LightID, 3, &LightPos[0]);
+        glUniform3fv(LightID, 1, &LightPos[0]);
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -173,7 +175,7 @@ int main(){
 
     delete [] texture_data;
     delete [] indices;
-    ObjFile::clean_up(V,N, VT, FV, FN, FT);
+    ObjFile::clean_up(Vx,N, VT, FV, FN, FT);
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &colorbuffer);
