@@ -2,21 +2,18 @@
 
 layout(location = 0) in vec3 vertexPosition_modelspace;
 layout(location = 1) in vec2 vertexUV;
-layout(location = 2) in vec3 N;
-
 
 out vec2 UV;
-
-out vec3 fragmentColour;
-out vec3 LightDir;
-out vec3 normal;
+out float DiffCoeff;
 
 uniform mat4 MVP;
-uniform vec3 lightPos;
+uniform vec3 LightPos;
 
 void main(){
     gl_Position = MVP*vec4(vertexPosition_modelspace,1);
     UV = vertexUV;
-    LightDir = vertexPosition_modelspace - lightPos;
-    normal = N;
+    vec3 n = vec3(0,0,-1.0f);
+    vec3 lightdir =  vertexPosition_modelspace - LightPos;
+    vec3 l = normalize(lightdir);
+    DiffCoeff = pow( dot(n,l),1000.0f);
 }

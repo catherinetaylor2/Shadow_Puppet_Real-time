@@ -1,13 +1,11 @@
 #version 330 core
 
-
 in vec2 UV;
-in vec3 LightDir;
-in vec3 normal;
+in float DiffCoeff;
 
 out vec3 colour;
 uniform sampler2D myTextureSampler;
 
 void main(){
-    colour = texture(myTextureSampler, UV).rgb;
+    colour = DiffCoeff*texture(myTextureSampler, UV).rgb;
 }
