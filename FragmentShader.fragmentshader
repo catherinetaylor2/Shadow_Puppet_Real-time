@@ -6,6 +6,10 @@ in float DiffCoeff;
 out vec3 colour;
 uniform sampler2D myTextureSampler;
 
+layout(location = 0) out vec3 color;
+
 void main(){
     colour = DiffCoeff*texture(myTextureSampler, UV).rgb;
 }
+
+//NOTE: PROBLEM WITH SHADING/TEXTURE?
