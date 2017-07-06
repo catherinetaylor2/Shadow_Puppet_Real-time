@@ -131,10 +131,8 @@ glBindTexture(GL_TEXTURE_2D, texColorBuffer);
 glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-glBindTexture(GL_TEXTURE_2D, 0);
-
-// attach it to currently bound framebuffer object
 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);  
+
 unsigned int rbo;
 glGenRenderbuffers(1, &rbo);
 glBindRenderbuffer(GL_RENDERBUFFER, rbo); 
@@ -148,16 +146,16 @@ glBindFramebuffer(GL_FRAMEBUFFER, 0);
  //-----------------------------------------------------------------------------------------------------------------------------------------------   
 
     do{
-        // bind to framebuffer and draw scene as we normally would to color texture 
-        // glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+        //FRAME BUFFER:
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glEnable(GL_DEPTH_TEST);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //------------------------------------------------------------------------------------
 
-        // // make sure we clear the framebuffer's content
-        // glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glBindTexture(GL_TEXTURE_2D, textureID);
         glUseProgram(programID);
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
         glUniform3fv(LightID, 1, &LightPos[0]);
