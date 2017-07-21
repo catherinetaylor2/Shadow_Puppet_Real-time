@@ -1,15 +1,14 @@
 #version 330 core
 
-in vec2 UV;
-in vec4 ShadowCoord;
+in vec2 UV; 
 
 out vec3 colour;
 
-uniform sampler2D textureID;
+uniform sampler2D textureID; //inputs shadow map and screen texture
 uniform sampler2D depthTexture;
 
 layout(location = 0) out vec3 color;
 
 void main(){
-    colour = texture(depthTexture, UV).r*texture(textureID, UV).rgb;
+    colour = texture(depthTexture, UV).r*texture(textureID, UV).rgb; //colour depends on distance between light and screen.
 }

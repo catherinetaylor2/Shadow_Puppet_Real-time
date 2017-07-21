@@ -1,3 +1,10 @@
+// Real-time Shadow Puppet Theatre
+//
+// Created by Catherine Taylor
+//
+//Began June 2017
+
+
 #include <glew.h>
 #include <glfw3.h>
 #include <cstdlib>
@@ -25,14 +32,17 @@ int main(int argc, char* argv[] ){
 		height=500;
 	}
 
+//screen texture data
     unsigned char * texture_data;
 	int texture_width, texture_height;
 	texture_data = readBMP("screen_texture.bmp", &texture_width, &texture_height);
 
+//puppet texture data (CURRENTLY UNUSED)
     unsigned char *puppet_data;
     int puppet_width, puppet_height;
     puppet_data = readBMP("dino_texture.bmp", &puppet_width, &puppet_height);
 
+//Input mesh of puppet as obj file
     float *Vx_puppet, *N_puppet, *VT_puppet;
     int number_of_faces_puppet, *FV_puppet, *FN_puppet, *FT_puppet, number_of_vertices_puppet;
     ObjFile mesh_puppet("dino_puppet_handle.obj");
@@ -50,6 +60,7 @@ int main(int argc, char* argv[] ){
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+//create openGL window
     GLFWwindow *window;
     window = glfwCreateWindow(width, height, "Shadow Puppet", NULL, NULL);
     
@@ -64,49 +75,49 @@ int main(int argc, char* argv[] ){
         std::cout<<"Error: failed to initialize GLEW \n";
         return -1;
     }
+
+    GLuint VertexArrayID; //Create vertex array object and set to be current
+    glGenVertexArrays(1, &VertexArrayID);
+    glBindVertexArray(VertexArrayID);
     
 //CAMERA POSITION DATA-----------------------------------------------------------------------------------------
-    glm::vec3 LightPos = glm::vec3(0.0f,0.0f, 50.0f);
-    glm::mat4 V =  glm::lookAt(
-                            glm::vec3(0,0,-4), // position of camera
-                            glm::vec3(0,0,1),  // look at vector
-                            glm::vec3(0,1,0)  //look up vector
-    );
-    glm::mat4 M = glm::mat4(0.65f); //Create MVP matrices.
-    M[3].w = 1.0;
+    glm::mat4 ViewMatrix =  glm::lookAt( glm::vec3(0,0,-4), // position of camera
+                                glm::vec3(0,0,1),  // look at vector
+                                glm::vec3(0,1,0)  //look up vector
+                            );
+    glm::mat4 ModelMatrix = glm::mat4(1.0f); //Create MVP matrices.
+    ModelMatrix[3].w = 1.0;
     glm::mat4 projectionMatrix = glm::perspective(
         glm::radians (45.0f),         //FOV
         (float)width/(float)height, // Aspect Ratio. 
         0.1f,        // Near clipping plane. 
         100.0f       // Far clipping plane.
     );
-    glm::mat4 MVP = projectionMatrix*V*M;
+    glm::mat4 MVP = projectionMatrix*ViewMatrix*ModelMatrix; //NOT USED CURRENTLY
 //-------------------------------------------------------------------------------------------------------------
-    GLuint puppet_textureID;
+    GLuint puppet_textureID; //create texture from screen image
     glGenTextures(1, &puppet_textureID);
     glBindTexture(GL_TEXTURE_2D, puppet_textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, puppet_width, puppet_height, 0, GL_RGB, GL_UNSIGNED_BYTE, puppet_data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    GLuint textureID;
+    GLuint textureID; //create texture from puppet image
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE); //set keys for window
 
-    GLuint VertexArrayID;
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
- // FRAME BUFFER CODE: --------------------------------------------------------------------------------------------------------------------------
+ // Depth Buffer code --------------------------------------------------------------------------------------------------------------------------
 
-    GLuint framebuffer = 0;
+    GLuint framebuffer = 0; //create shadow map
     glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);    
-    // generate texture
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);  
+
+    // generate texture which will contain depth info
     GLuint depthTexture;
     glGenTextures(1, &depthTexture);
     glBindTexture(GL_TEXTURE_2D, depthTexture);
@@ -120,26 +131,16 @@ int main(int argc, char* argv[] ){
 
     glDrawBuffer(GL_NONE);
 
-    // unsigned int rbo;
-    // glGenRenderbuffers(1, &rbo);
-    // glBindRenderbuffer(GL_RENDERBUFFER, rbo); 
-    // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);  
-    // glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) //check depth buffer is complete
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete! \n" ;
-    // glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 
+    glm::vec3 lightInvDir = glm::vec3(0.0f, 2, -10); //find objects which occlude the light source
+    glm::mat4 depthProjectionMatrix = glm::ortho<float>(-7,7,-7,7,-10,20);
+    glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0,0,0), glm::vec3(0,1,0));
+    glm::mat4 depthModelMatrix =  glm::mat4(1.0f);
+    glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
 
-glm::vec3 lightInvDir = glm::vec3(0.0f, 2, -10);
-
-glm::mat4 depthProjectionMatrix = glm::ortho<float>(-7,7,-7,7,-10,20);
-glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0,0,0), glm::vec3(0,1,0));
-glm::mat4 depthModelMatrix =  glm::mat4(1.0f);
-glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
-
-
-    GLuint puppet_vertexbuffer;
+    GLuint puppet_vertexbuffer; //buffer containing puppet mesh
     glGenBuffers(1, &puppet_vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, puppet_vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, 3*number_of_vertices_puppet*sizeof(float), Vx_puppet, GL_DYNAMIC_DRAW);
@@ -151,22 +152,18 @@ glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
         indices[i+2]=FV_puppet[i+2]-1;   
     }
 
-    GLuint IBO;
+    GLuint IBO; //index buffer
     glGenBuffers(1, &IBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3*number_of_faces_puppet*sizeof(unsigned int), indices, GL_DYNAMIC_DRAW); 
 
-    GLuint depthprogramID = LoadShaders("VertexShader_fb.vertexshader", "FragmentShader_fb.fragmentshader");
-    GLuint depthMatrixID = glGetUniformLocation(depthprogramID, "depthMVP");
-
-
- //-----------------------------------------------------------------------------------------------------------------------------------------------   
+    GLuint depthprogramID = LoadShaders("VertexShader_fb.vertexshader", "FragmentShader_fb.fragmentshader"); //load shaders
+    GLuint depthMatrixID = glGetUniformLocation(depthprogramID, "depthMVP"); //load MVP matrix to shader
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 // Screen texture data:
 
-    
-    float ver [] = {
+    float ver [] = { //quad filling whole screen
         -1.0f,-1.0f, 0.0f,
         1.0f, -1.0f, 0.0f,
         1.0f, 1.0f, 0.0f,
@@ -175,7 +172,7 @@ glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
         -1.0f,1.0f, 0.0f,
     };
 
-    float col [] = {
+    float col [] = { //UV coords
         0.0f, 0.0f, 
         1.0f, 0.0f, 
         1.0f, 1.0f,
@@ -184,8 +181,7 @@ glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
         0.0f, 1.0f,
     };
 
-
-    GLuint vertexbuffer;
+    GLuint vertexbuffer; //create buffers for screen values
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(ver), ver, GL_DYNAMIC_DRAW);
@@ -195,17 +191,9 @@ glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
     glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
     glBufferData(GL_ARRAY_BUFFER,sizeof(col),  &col, GL_STATIC_DRAW);
 
-   glm::mat4 biasMatrix(0.5,0.0,0.0, 0.0,
-   0.0, 0.5, 0.0, 0.0,
-   0.0, 0.0, 0.5, 0.0,
-   0.5, 0.5, 0.5, 1.0
-   );
-   glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 
-    GLuint programID = LoadShaders("VertexShader.vertexshader", "FragmentShader.fragmentshader");
-    GLuint MatrixID = glGetUniformLocation(programID, "depthBiasMVP");
-
+    GLuint programID = LoadShaders("VertexShader.vertexshader", "FragmentShader.fragmentshader"); //load screen shaders
     GLuint texID= glGetUniformLocation(programID, "textureID"); //two textures inputted to fragment shader
     GLuint depthID = glGetUniformLocation(programID, "depthTexture");
     glUseProgram(programID);
@@ -213,19 +201,18 @@ glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
     glUniform1i(depthID, 1);
 
 
-    do{
-        //FRAME BUFFER:
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glUseProgram(depthprogramID);
-        glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]);
-        glEnable(GL_DEPTH_TEST);
+    do{ //while window is open
+
+        //Render to shadow map:
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); //bind to shadow map
+        glUseProgram(depthprogramID); //use shadow map shaders
+        glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]); //load in MVP matrix
+        glEnable(GL_DEPTH_TEST); //find depth values
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, puppet_vertexbuffer);
-        
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO); 
         GLint posAttrib1 = glGetAttribLocation(depthprogramID, "position");
         glEnableVertexAttribArray(posAttrib1);
         glVertexAttribPointer(0, // 0  is vertex
@@ -237,26 +224,21 @@ glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
         );        
         glDrawElements(GL_TRIANGLES, 3*number_of_faces_puppet,  GL_UNSIGNED_INT,0); // draw mesh
 
-
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0,0,width,height);
-        //------------------------------------------------------------------------------------
+        glBindFramebuffer(GL_FRAMEBUFFER, 0); //bind to default depth buffer
+        glViewport(0,0,width,height); //fill whole screen
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(programID);
-        glActiveTexture(GL_TEXTURE0);
-       glBindTexture(GL_TEXTURE_2D, textureID);
-        glActiveTexture(GL_TEXTURE1);
-       glBindTexture(GL_TEXTURE_2D, depthTexture);
+        glUseProgram(programID); //use screen shaders
+        glActiveTexture(GL_TEXTURE0); //load in screen texture
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glActiveTexture(GL_TEXTURE1); //load in shadow map
+        glBindTexture(GL_TEXTURE_2D, depthTexture);
 
-        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &depthBiasMVP[0][0]);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
 
-       glEnable(GL_DEPTH_TEST);
-       glDepthFunc(GL_LESS);
-
-        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(0); //draw quad with textures mapped on.
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         GLint posAttrib = glGetAttribLocation(programID, "position");
         glEnableVertexAttribArray(posAttrib);
@@ -285,8 +267,10 @@ glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
         glfwPollEvents();
     }
 
-    while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0);
+    while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0); //close if escape pressed
 
+
+//clear up and delete buffers
     delete[] texture_data;
     delete[] puppet_data;
     delete[] indices;
@@ -294,10 +278,10 @@ glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &colorbuffer);
-  //  glDeleteBuffers(1,&rbo);
-    glDeleteBuffers(1,&depthTexture);
+    glDeleteBuffers(1, &depthTexture);
     glDeleteBuffers(1, &puppet_textureID);
     glDeleteBuffers(1, &textureID);
+    glDeleteBuffers(1, &IBO);
     glDeleteFramebuffers(1, &framebuffer);  
 
     return 0;

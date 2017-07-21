@@ -2,7 +2,6 @@
 
 layout(location = 0) out float fragementdepth;
 
-void main()
-{
+void main(){
     fragementdepth = gl_FragCoord.z;
 } 
