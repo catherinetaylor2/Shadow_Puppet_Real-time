@@ -1,15 +1,15 @@
 #version 330 core
 
 in vec2 UV;
-in float DiffCoeff;
+in vec4 ShadowCoord;
 
 out vec3 colour;
-uniform sampler2D myTextureSampler;
+
+uniform sampler2D textureID;
+uniform sampler2D depthTexture;
 
 layout(location = 0) out vec3 color;
 
 void main(){
-    colour = DiffCoeff*texture(myTextureSampler, UV).rgb;
+    colour = texture(depthTexture, UV).r*texture(textureID, UV).rgb;
 }
-
-//NOTE: PROBLEM WITH SHADING/TEXTURE?

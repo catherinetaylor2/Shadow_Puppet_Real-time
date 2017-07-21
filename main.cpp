@@ -133,7 +133,7 @@ int main(int argc, char* argv[] ){
 
 glm::vec3 lightInvDir = glm::vec3(0.0f, 2, -10);
 
-glm::mat4 depthProjectionMatrix = glm::ortho<float>(-10,10,-10,10,-10,20);
+glm::mat4 depthProjectionMatrix = glm::ortho<float>(-7,7,-7,7,-10,20);
 glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0,0,0), glm::vec3(0,1,0));
 glm::mat4 depthModelMatrix =  glm::mat4(1.0f);
 glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;

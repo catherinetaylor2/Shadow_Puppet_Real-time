@@ -1,0 +1,8 @@
+#version 330 core
+
+layout(location = 0) out float fragementdepth;
+
+void main()
+{
+    fragementdepth = gl_FragCoord.z;
+} 
