@@ -156,8 +156,8 @@ glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3*number_of_faces_puppet*sizeof(unsigned int), indices, GL_DYNAMIC_DRAW); 
 
- GLuint depthprogramID = LoadShaders("VertexShader_fb.vertexshader", "FragmentShader_fb.fragmentshader");
-GLuint depthMatrixID = glGetUniformLocation(depthprogramID, "depthMVP");
+    GLuint depthprogramID = LoadShaders("VertexShader_fb.vertexshader", "FragmentShader_fb.fragmentshader");
+    GLuint depthMatrixID = glGetUniformLocation(depthprogramID, "depthMVP");
 
 
  //-----------------------------------------------------------------------------------------------------------------------------------------------   
@@ -195,12 +195,23 @@ GLuint depthMatrixID = glGetUniformLocation(depthprogramID, "depthMVP");
     glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
     glBufferData(GL_ARRAY_BUFFER,sizeof(col),  &col, GL_STATIC_DRAW);
 
-   
+   glm::mat4 biasMatrix(0.5,0.0,0.0, 0.0,
+   0.0, 0.5, 0.0, 0.0,
+   0.0, 0.0, 0.5, 0.0,
+   0.5, 0.5, 0.5, 1.0
+   );
+   glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 
     GLuint programID = LoadShaders("VertexShader.vertexshader", "FragmentShader.fragmentshader");
-    GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-   GLuint texID = glGetUniformLocation(programID, "depthTexture");
+    GLuint MatrixID = glGetUniformLocation(programID, "depthBiasMVP");
+
+     GLuint texID= glGetUniformLocation(programID, "textureID");
+     GLuint depthID = glGetUniformLocation(programID, "depthTexture");
+     glUseProgram(programID);
+   glUniform1i(texID, 0);
+   glUniform1i(depthID, 1);
+
 
     
 
@@ -235,9 +246,14 @@ GLuint depthMatrixID = glGetUniformLocation(depthprogramID, "depthMVP");
         //------------------------------------------------------------------------------------
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glBindTexture(GL_TEXTURE_2D, depthTexture);
+
         glUseProgram(programID);
-        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+        glActiveTexture(GL_TEXTURE0);
+       glBindTexture(GL_TEXTURE_2D, textureID);
+        glActiveTexture(GL_TEXTURE1);
+       glBindTexture(GL_TEXTURE_2D, depthTexture);
+
+        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &depthBiasMVP[0][0]);
 
      //   glEnable(GL_DEPTH_TEST);
       //  glDepthFunc(GL_LESS);
