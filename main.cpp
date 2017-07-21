@@ -107,7 +107,7 @@ int main(int argc, char* argv[] ){
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);    
     // generate texture
-    unsigned int depthTexture;
+    GLuint depthTexture;
     glGenTextures(1, &depthTexture);
     glBindTexture(GL_TEXTURE_2D, depthTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
@@ -131,7 +131,7 @@ int main(int argc, char* argv[] ){
     // glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 
 
-glm::vec3 lightInvDir = glm::vec3(0.0f, 0, 12);
+glm::vec3 lightInvDir = glm::vec3(0.0f, 2, -10);
 
 glm::mat4 depthProjectionMatrix = glm::ortho<float>(-10,10,-10,10,-10,20);
 glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0,0,0), glm::vec3(0,1,0));
@@ -206,14 +206,12 @@ glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
     GLuint programID = LoadShaders("VertexShader.vertexshader", "FragmentShader.fragmentshader");
     GLuint MatrixID = glGetUniformLocation(programID, "depthBiasMVP");
 
-     GLuint texID= glGetUniformLocation(programID, "textureID");
-     GLuint depthID = glGetUniformLocation(programID, "depthTexture");
-     glUseProgram(programID);
-   glUniform1i(texID, 0);
-   glUniform1i(depthID, 1);
+    GLuint texID= glGetUniformLocation(programID, "textureID"); //two textures inputted to fragment shader
+    GLuint depthID = glGetUniformLocation(programID, "depthTexture");
+    glUseProgram(programID);
+    glUniform1i(texID, 0);
+    glUniform1i(depthID, 1);
 
-
-    
 
     do{
         //FRAME BUFFER:
@@ -255,8 +253,8 @@ glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
 
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &depthBiasMVP[0][0]);
 
-     //   glEnable(GL_DEPTH_TEST);
-      //  glDepthFunc(GL_LESS);
+       glEnable(GL_DEPTH_TEST);
+       glDepthFunc(GL_LESS);
 
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
