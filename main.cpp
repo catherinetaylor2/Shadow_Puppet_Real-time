@@ -4,7 +4,6 @@
 //
 //Began June 2017
 
-
 #include <glew.h>
 #include <glfw3.h>
 #include <cstdlib>
@@ -111,28 +110,65 @@ int main(int argc, char* argv[] ){
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE); //set keys for window
 
- // Depth Buffer code --------------------------------------------------------------------------------------------------------------------------
+ // Depth Buffer code: --------------------------------------------------------------------------------------------------------------------------
 
-    GLuint framebuffer = 0; //create shadow map
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);  
+    // GLuint framebuffer = 0; //create shadow map
+    // glGenFramebuffers(1, &framebuffer);
+    // glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);  
 
-    // generate texture which will contain depth info
-    GLuint depthTexture;
-    glGenTextures(1, &depthTexture);
-    glBindTexture(GL_TEXTURE_2D, depthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    // // generate texture which will contain depth info
+    // GLuint depthTexture;
+    // glGenTextures(1, &depthTexture);
+    // glBindTexture(GL_TEXTURE_2D, depthTexture);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);  
+    // glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);  
 
-    glDrawBuffer(GL_NONE);
+    // glDrawBuffer(GL_NONE);
 
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) //check depth buffer is complete
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete! \n" ;
+    // if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) //check depth buffer is complete
+    //     std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete! \n" ;
+
+GLuint framebuffer = 0;
+glGenFramebuffers(1, &framebuffer);
+glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+// The texture we're going to render to
+GLuint depthTexture;
+glGenTextures(1, &depthTexture);
+
+// "Bind" the newly created texture : all future texture functions will modify this texture
+glBindTexture(GL_TEXTURE_2D,depthTexture);
+
+// Give an empty image to OpenGL ( the last "0" )
+glTexImage2D(GL_TEXTURE_2D, 0,GL_RGB, width, height, 0,GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+// Poor filtering. Needed !
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+// The depth buffer
+GLuint depthrenderbuffer;
+glGenRenderbuffers(1, &depthrenderbuffer);
+glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT,width, height);
+glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+
+
+// Set "renderedTexture" as our colour attachement #0
+glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, depthTexture, 0);
+
+// Set the list of draw buffers.
+GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+glDrawBuffers(1, DrawBuffers);
+
+if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+return false;
+
 
     glm::vec3 lightInvDir = glm::vec3(0.0f, 2, -10); //find objects which occlude the light source
     glm::mat4 depthProjectionMatrix = glm::ortho<float>(-7,7,-7,7,-10,20);
@@ -159,6 +195,11 @@ int main(int argc, char* argv[] ){
 
     GLuint depthprogramID = LoadShaders("VertexShader_fb.vertexshader", "FragmentShader_fb.fragmentshader"); //load shaders
     GLuint depthMatrixID = glGetUniformLocation(depthprogramID, "depthMVP"); //load MVP matrix to shader
+
+//------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 // Screen texture data:
@@ -205,6 +246,7 @@ int main(int argc, char* argv[] ){
 
         //Render to shadow map:
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); //bind to shadow map
+        glViewport(0,0, width, height);
         glUseProgram(depthprogramID); //use shadow map shaders
         glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]); //load in MVP matrix
         glEnable(GL_DEPTH_TEST); //find depth values
@@ -268,7 +310,6 @@ int main(int argc, char* argv[] ){
     }
 
     while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0); //close if escape pressed
-
 
 //clear up and delete buffers
     delete[] texture_data;
