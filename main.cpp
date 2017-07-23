@@ -19,8 +19,9 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
 
-
-void write_to_shadow_map(GLuint depthMatrixID, glm::mat4 depthMVP, GLuint puppet_vertexbuffer, GLint posAttrib, int number_of_faces_puppet, GLuint IBO){
+void write_to_shadow_map(GLuint framebuffer,GLuint depthMatrixID, glm::mat4 depthMVP, GLuint puppet_vertexbuffer, GLint posAttrib, int number_of_faces_puppet, GLuint IBO){
+  
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); //bind to shadow map
     glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]); //load in MVP matrix
     glEnable(GL_DEPTH_TEST); //find depth values
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -40,6 +41,7 @@ void write_to_shadow_map(GLuint depthMatrixID, glm::mat4 depthMVP, GLuint puppet
     glDrawElements(GL_TRIANGLES, 3*number_of_faces_puppet,  GL_UNSIGNED_INT,0); // draw mesh
     glDisableVertexAttribArray(0);
 };
+
 int main(int argc, char* argv[] ){
 
     int width, height;
@@ -48,8 +50,8 @@ int main(int argc, char* argv[] ){
 		height = atoi(argv[2]);
 	}
 	else{
-		width=500;
-		height=500;
+		width = 500;
+		height = 500;
 	}
 
 //screen texture data
@@ -101,19 +103,19 @@ int main(int argc, char* argv[] ){
     glBindVertexArray(VertexArrayID);
     
 //CAMERA POSITION DATA-----------------------------------------------------------------------------------------
-    glm::mat4 ViewMatrix =  glm::lookAt( glm::vec3(0,0,-4), // position of camera
-                                glm::vec3(0,0,1),  // look at vector
-                                glm::vec3(0,1,0)  //look up vector
-                            );
-    glm::mat4 ModelMatrix = glm::mat4(1.0f); //Create MVP matrices.
-    ModelMatrix[3].w = 1.0;
-    glm::mat4 projectionMatrix = glm::perspective(
-        glm::radians (45.0f),         //FOV
-        (float)width/(float)height, // Aspect Ratio. 
-        0.1f,        // Near clipping plane. 
-        100.0f       // Far clipping plane.
-    );
-    glm::mat4 MVP = projectionMatrix*ViewMatrix*ModelMatrix; //NOT USED CURRENTLY
+    // glm::mat4 ViewMatrix =  glm::lookAt( glm::vec3(0,0,-4), // position of camera
+    //                             glm::vec3(0,0,1),  // look at vector
+    //                             glm::vec3(0,1,0)  //look up vector
+    //                         );
+    // glm::mat4 ModelMatrix = glm::mat4(1.0f); //Create MVP matrices.
+    // ModelMatrix[3].w = 1.0;
+    // glm::mat4 projectionMatrix = glm::perspective(
+    //     glm::radians (45.0f),         //FOV
+    //     (float)width/(float)height, // Aspect Ratio. 
+    //     0.1f,        // Near clipping plane. 
+    //     100.0f       // Far clipping plane.
+    // );
+    // glm::mat4 MVP = projectionMatrix*ViewMatrix*ModelMatrix; //NOT USED CURRENTLY
 //-------------------------------------------------------------------------------------------------------------
     GLuint puppet_textureID; //create texture from screen image
     glGenTextures(1, &puppet_textureID);
@@ -133,21 +135,21 @@ int main(int argc, char* argv[] ){
 
  // Depth Buffer code: --------------------------------------------------------------------------------------------------------------------------
 
-    GLuint framebuffer = 0; //create shadow map
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);  
+    GLuint framebuffer_inner = 0; //create shadow map
+    glGenFramebuffers(1, &framebuffer_inner);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_inner);  
 
     // generate texture which will contain depth info
-    GLuint depthTexture;
-    glGenTextures(1, &depthTexture);
-    glBindTexture(GL_TEXTURE_2D, depthTexture);
+    GLuint depthTexture_inner;
+    glGenTextures(1, &depthTexture_inner);
+    glBindTexture(GL_TEXTURE_2D, depthTexture_inner);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);  
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_inner, 0);  
 
     glDrawBuffer(GL_NONE);
 
@@ -155,6 +157,7 @@ int main(int argc, char* argv[] ){
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete! \n" ;
 
 
+//light data
     glm::vec3 lightInvDir = glm::vec3(0.0f, 0, -10); //find objects which occlude the light source
     glm::mat4 depthProjectionMatrix = glm::ortho<float>(-7.5,7.5,-7.5,7.5,-10,10); //size of dino visiible
     glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0,0,-1), glm::vec3(0,1,0));
@@ -186,21 +189,21 @@ int main(int argc, char* argv[] ){
 
 // Depth Buffer code: --------------------------------------------------------------------------------------------------------------------------
 
-    GLuint framebuffer2 = 0; //create shadow map
-    glGenFramebuffers(1, &framebuffer2);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer2);  
+    GLuint framebuffer_outer = 0; //create shadow map
+    glGenFramebuffers(1, &framebuffer_outer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_outer);  
 
     // generate texture which will contain depth info
-    GLuint depthTexture2;
-    glGenTextures(1, &depthTexture2);
-    glBindTexture(GL_TEXTURE_2D, depthTexture2);
+    GLuint depthTexture_outer;
+    glGenTextures(1, &depthTexture_outer);
+    glBindTexture(GL_TEXTURE_2D, depthTexture_outer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture2, 0);  
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture_outer, 0);  
 
     glDrawBuffer(GL_NONE);
 
@@ -246,26 +249,23 @@ int main(int argc, char* argv[] ){
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 
     GLuint programID = LoadShaders("VertexShader.vertexshader", "FragmentShader.fragmentshader"); //load screen shaders
-    GLuint texID= glGetUniformLocation(programID, "textureID"); //two textures inputted to fragment shader
-    GLuint depthID = glGetUniformLocation(programID, "depthTexture");
-    GLuint depthID2 =  glGetUniformLocation(programID, "depthTexture2");
+    GLuint texID= glGetUniformLocation(programID, "textureID"); //three textures inputted to fragment shader
+    GLuint depthID_inner = glGetUniformLocation(programID, "depthTexture_inner");
+    GLuint depthID_outer =  glGetUniformLocation(programID, "depthTexture_outer");
     
-    glUseProgram(programID);
+    glUseProgram(programID); 
     glUniform1i(texID, 0);
-    glUniform1i(depthID, 1);
-    glUniform1i(depthID2, 2);
+    glUniform1i(depthID_inner, 1);
+    glUniform1i(depthID_outer, 2);
 
 
     do{ //while window is open
 
         //Render to shadow maps:
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); //bind to shadow map
         glUseProgram(depthprogramID); //use shadow map shaders       
-        GLint posAttrib1 = glGetAttribLocation(depthprogramID, "position");       
-        write_to_shadow_map(depthMatrixID,  depthMVP,puppet_vertexbuffer, posAttrib1,  number_of_faces_puppet,IBO);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer2); //bind to shadow map
-        write_to_shadow_map(depthMatrixID,  depthMVP2,puppet_vertexbuffer, posAttrib1,  number_of_faces_puppet,IBO);
+        GLint posAttrib_shadow = glGetAttribLocation(depthprogramID, "position");       
+        write_to_shadow_map(framebuffer_inner,depthMatrixID, depthMVP, puppet_vertexbuffer, posAttrib_shadow, number_of_faces_puppet,IBO);
+        write_to_shadow_map(framebuffer_outer,depthMatrixID, depthMVP2, puppet_vertexbuffer, posAttrib_shadow, number_of_faces_puppet,IBO);
 
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); //bind to default frame buffer
@@ -277,9 +277,9 @@ int main(int argc, char* argv[] ){
         glActiveTexture(GL_TEXTURE0); //load in screen texture
         glBindTexture(GL_TEXTURE_2D, textureID);
         glActiveTexture(GL_TEXTURE1); //load in shadow map
-        glBindTexture(GL_TEXTURE_2D, depthTexture);
-          glActiveTexture(GL_TEXTURE2); //load in shadow map
-        glBindTexture(GL_TEXTURE_2D, depthTexture2);
+        glBindTexture(GL_TEXTURE_2D, depthTexture_inner);
+        glActiveTexture(GL_TEXTURE2); //load in shadow map
+        glBindTexture(GL_TEXTURE_2D, depthTexture_outer);
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -322,11 +322,13 @@ int main(int argc, char* argv[] ){
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &colorbuffer);
-    glDeleteBuffers(1, &depthTexture);
+    glDeleteBuffers(1, &depthTexture_inner);
+    glDeleteBuffers(1, &depthTexture_outer);
     glDeleteBuffers(1, &puppet_textureID);
     glDeleteBuffers(1, &textureID);
     glDeleteBuffers(1, &IBO);
-    glDeleteFramebuffers(1, &framebuffer);  
+    glDeleteFramebuffers(1, &framebuffer_inner);  
+    glDeleteFramebuffers(1, &framebuffer_outer);  
 
     return 0;
 }
