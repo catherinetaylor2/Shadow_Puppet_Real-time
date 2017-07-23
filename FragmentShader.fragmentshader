@@ -6,9 +6,23 @@ out vec3 colour;
 
 uniform sampler2D textureID; //inputs shadow map and screen texture
 uniform sampler2D depthTexture;
+uniform sampler2D depthTexture2;
 
 layout(location = 0) out vec3 color;
 
 void main(){
-    colour = texture(depthTexture, UV).r*texture(textureID, UV).rgb; //colour depends on distance between light and screen.
+    float visibility = 1.0f, a,b, occ = 0.0f;
+    int min =10;
+    for(int i=-min; i<min+1;++i){
+        for(int j=-min; j<min+1; ++j){
+            a=i/500.0f;
+            b=j/500.0f;
+            vec2  u_v = UV +vec2(a,b);
+            if(texture(depthTexture, u_v).x<1.0f){
+                occ++;
+            }
+        }
+    }
+    
+    colour = (texture(depthTexture2, UV).r)*(1.0f - occ/(4*min*min*2))*texture(textureID, UV).rgb; //colour depends on distance between light and screen.
 }
