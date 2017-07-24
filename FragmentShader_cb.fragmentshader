@@ -4,9 +4,13 @@ layout(location = 0) out vec3 color;
 
 uniform sampler2D screenTexture;
 in vec2 UV;
+in vec3 L;
+in vec3 V;
 
 void main() { 
-
-  color =texture(screenTexture, UV).rgb;
-
+  vec3 LightDir = V - L;
+  vec3 n = vec3(0,0,-1.0f);
+  vec3 l = normalize(LightDir);
+  float diffuseCoeff = pow(dot(n,l),4000.0f);
+  color =diffuseCoeff*texture(screenTexture, UV).rgb;
 } 

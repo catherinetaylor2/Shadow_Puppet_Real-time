@@ -73,7 +73,7 @@ int main(int argc, char* argv[] ){
 //screen texture data
     unsigned char * texture_data;
 	int texture_width, texture_height;
-	texture_data = readBMP("screen_texture.bmp", &texture_width, &texture_height);
+	texture_data = readBMP("sheet6.bmp", &texture_width, &texture_height);
 
 //puppet texture data
     unsigned char *puppet_data;
@@ -85,6 +85,12 @@ int main(int argc, char* argv[] ){
     int number_of_faces_puppet, *FV_puppet, *FN_puppet, *FT_puppet, number_of_vertices_puppet;
     ObjFile mesh_puppet("quad.obj");
 	mesh_puppet.get_mesh_data(mesh_puppet, &FV_puppet, &FN_puppet, &FT_puppet, &VT_puppet, &N_puppet, &Vx_puppet, &number_of_faces_puppet, &number_of_vertices_puppet);
+	std::cout<<"tree built \n";
+
+      float *Vx, *N, *VT;
+    int number_of_faces, *FV, *FN, *FT, number_of_vertices;
+    ObjFile mesh_screen("plane.obj");
+	mesh_screen.get_mesh_data(mesh_screen, &FV, &FN, &FT, &VT, &N, &Vx, &number_of_faces, &number_of_vertices);
 	std::cout<<"tree built \n";
 
     if(!glfwInit()){ // initialize GLFW
@@ -119,6 +125,8 @@ int main(int argc, char* argv[] ){
     glBindVertexArray(VertexArrayID);
     
 //CAMERA POSITION DATA-----------------------------------------------------------------------------------------
+
+glm::vec3 LightPos = glm::vec3(0.0f,0.0f,50.0f);
     // glm::mat4 ViewMatrix =  glm::lookAt( glm::vec3(0,0,-4), // position of camera
     //                             glm::vec3(0,0,1),  // look at vector
     //                             glm::vec3(0,1,0)  //look up vector
@@ -172,6 +180,29 @@ int main(int argc, char* argv[] ){
       if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) //check depth buffer is complete
         std::cout << "Error: frame buffer not complete \n" ;
 
+        
+    GLuint screen_vertexbuffer; //buffer containing puppet mesh
+    glGenBuffers(1, &screen_vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, screen_vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, 3*number_of_vertices*sizeof(float), &Vx[0], GL_DYNAMIC_DRAW);
+
+    unsigned int* screen_indices = new unsigned int [3*number_of_faces]; // create array containing position of vertices.
+    for(int i=0; i<3*number_of_faces; i+=3){
+        screen_indices[i]=FV[i]-1;
+        screen_indices[i+1]=FV[i+1]-1;
+        screen_indices[i+2]=FV[i+2]-1;   
+    }
+
+    GLuint screen_IBO; //index buffer
+    glGenBuffers(1, &screen_IBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, screen_IBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3*number_of_faces*sizeof(unsigned int), screen_indices, GL_DYNAMIC_DRAW); 
+
+    GLuint screen_UVbuffer;
+    glGenBuffers(1, &screen_UVbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, screen_UVbuffer);
+    glBufferData(GL_ARRAY_BUFFER,2*number_of_vertices*sizeof(float),  &VT[0], GL_STATIC_DRAW);
+
 
  // Depth Buffer code: --------------------------------------------------------------------------------------------------------------------------
 
@@ -191,7 +222,7 @@ int main(int argc, char* argv[] ){
     glDrawBuffer(GL_NONE);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) //check depth buffer is complete
-        std::cout << "Error: frame buffer not complete \n" ;
+        std::cerr << "Error: frame buffer not complete \n" ;
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[0]); //set up outer light buffer
 
@@ -301,20 +332,21 @@ int main(int argc, char* argv[] ){
     glUniform1i(puppetID, 0);
 
     GLuint screenprogramID = LoadShaders("VertexShader_cb.vertexshader", "FragmentShader_cb.fragmentshader"); //load shaders
+    GLuint LightID = glGetUniformLocation(screenprogramID, "LightPos");
     GLuint screenID = glGetUniformLocation(screenprogramID, "screenTexture");
     glUseProgram(screenprogramID); 
     glUniform1i(screenID, 0);
-
-
 
     glUseProgram(screenprogramID); //create screen texture with lighting model
     glActiveTexture(GL_TEXTURE0); //load in screen texture
     glBindTexture(GL_TEXTURE_2D, textureID);
     glBindFramebuffer(GL_FRAMEBUFFER, fb);
+    glUniform3fv(LightID,1,&LightPos[0]);
 
-        glEnableVertexAttribArray(0); //draw quad with textures mapped on.
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glEnableVertexAttribArray(0); //draw quad with textures mapped on.
+    glBindBuffer(GL_ARRAY_BUFFER, screen_vertexbuffer);
     GLint posAttribs = glGetAttribLocation(screenprogramID, "position");
+     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, screen_IBO); 
     glEnableVertexAttribArray(posAttribs);
     glVertexAttribPointer(
         0,
@@ -325,7 +357,7 @@ int main(int argc, char* argv[] ){
         (void*)0
     );
     glEnableVertexAttribArray(1); //use UV coords
-    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, screen_UVbuffer);
     glVertexAttribPointer(
         1,
         2,
@@ -334,7 +366,7 @@ int main(int argc, char* argv[] ){
         0,  
         (void*)0
     );
-    glDrawArrays(GL_TRIANGLES,0,6);
+      glDrawElements(GL_TRIANGLES, 3*number_of_faces,  GL_UNSIGNED_INT,0); // draw mesh
     glDisableVertexAttribArray(0);
 
     std::chrono::time_point<std::chrono::system_clock>start,end;
@@ -410,7 +442,9 @@ int main(int argc, char* argv[] ){
     delete[] texture_data;
     delete[] puppet_data;
     delete[] indices;
+    delete[] screen_indices;
     ObjFile::clean_up(Vx_puppet,N_puppet, VT_puppet, FV_puppet, FN_puppet, FT_puppet);
+    ObjFile::clean_up(Vx,N, VT, FV, FN, FT);
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &puppet_vertexbuffer);

@@ -24,5 +24,5 @@ void main(){
         }
     }
     
-    colour =texture(renderedTexture, UV).rgb;// (texture(depthTexture_outer, UV).r)*(1.0f - occ/(4*min*min*1.5))*texture(renderedTexture, UV).rgb; //colour depends on distance between light and screen.
+    colour =(texture(depthTexture_outer, UV).r)*(1.0f - occ/(4*min*min*1.5))*texture(renderedTexture, UV).rgb; //colour depends on distance between light and screen.
 }
