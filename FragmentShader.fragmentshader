@@ -4,8 +4,8 @@ in vec2 UV;
 
 out vec3 colour;
 
-uniform sampler2D textureID; //inputs shadow map and screen texture
-uniform sampler2D depthTexture_inner;
+uniform sampler2D renderedTexture; //inputs shadow map and screen texture
+uniform sampler2D depthTexture;
 uniform sampler2D depthTexture_outer;
 
 layout(location = 0) out vec3 color;
@@ -18,11 +18,11 @@ void main(){
             a=i/500.0f;
             b=j/500.0f;
             vec2  u_v = UV +vec2(a,b);
-            if(texture(depthTexture_inner, u_v).x<1.0f){
+            if(texture(depthTexture, u_v).x<1.0f){
                 occ++;
             }
         }
     }
     
-    colour = (texture(depthTexture_outer, UV).r)*(1.0f - occ/(4*min*min*1.5))*texture(textureID, UV).rgb; //colour depends on distance between light and screen.
+    colour =texture(renderedTexture, UV).rgb;// (texture(depthTexture_outer, UV).r)*(1.0f - occ/(4*min*min*1.5))*texture(renderedTexture, UV).rgb; //colour depends on distance between light and screen.
 }

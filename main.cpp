@@ -152,16 +152,34 @@ int main(int argc, char* argv[] ){
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE); //set keys for window
 
+//------------------
+//COLOR BUFFER:
+    GLuint fb;
+    glGenFramebuffers(1, &fb);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb);
+
+    GLuint screen_tex; // generate textures which will contain depth info
+    glGenTextures(1, &screen_tex);
+    glBindTexture(GL_TEXTURE_2D, screen_tex); //set up inner shadow map
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, screen_tex, 0); 
+    
+
+      if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) //check depth buffer is complete
+        std::cout << "Error: frame buffer not complete \n" ;
 
 
  // Depth Buffer code: --------------------------------------------------------------------------------------------------------------------------
 
-    GLuint framebuffer[2]; //create 2 shadow maps
+    GLuint framebuffer[2]; //create 2 buffers to produce shadow maps
     glGenFramebuffers(2, framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[1]);  
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[1]);  //inner light buffer
 
-    // generate textures which will contain depth info
-    GLuint depthTexture[2];
+    GLuint depthTexture[2]; // generate textures which will contain depth info
     glGenTextures(2, depthTexture);
     glBindTexture(GL_TEXTURE_2D, depthTexture[1]); //set up inner shadow map
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
@@ -175,7 +193,7 @@ int main(int argc, char* argv[] ){
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) //check depth buffer is complete
         std::cout << "Error: frame buffer not complete \n" ;
 
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[0]); //set up outer shadow map
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[0]); //set up outer light buffer
 
     glBindTexture(GL_TEXTURE_2D, depthTexture[0]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
@@ -184,7 +202,6 @@ int main(int argc, char* argv[] ){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture[0], 0);  
-
     glDrawBuffer(GL_NONE);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) //check depth buffer is complete
@@ -198,7 +215,6 @@ int main(int argc, char* argv[] ){
     depthModelMatrix[3].w=1.0f;
     glm::mat4 depthMVP = depthProjectionMatrix*depthViewMatrix*depthModelMatrix;
 
-    
     glm::mat4 depthProjectionMatrix_outer = glm::ortho<float>(-5,5,-5,5,-10,15); //size of dino visiible
     glm::mat4 depthMVP_outer = depthProjectionMatrix_outer*depthViewMatrix*depthModelMatrix;
 
@@ -267,31 +283,62 @@ int main(int argc, char* argv[] ){
                         0.0f, 0.0f,1.0f, 0.0f,
                         0.0f, 0.0f, 0.0f,1.0f,};
 //---------------------------------------------------------------------------------------------------------------------------------------------------
-
+//LOAD SHADERS:
     GLuint programID = LoadShaders("VertexShader.vertexshader", "FragmentShader.fragmentshader"); //load screen shaders
     GLuint texID= glGetUniformLocation(programID, "renderedTexture"); //three textures inputted to fragment shader
     GLuint depthID_inner = glGetUniformLocation(programID, "depthTexture");
     GLuint depthID_outer =  glGetUniformLocation(programID, "depthTexture_outer");
-
-
-  
-    
     glUseProgram(programID); 
     glUniform1i(texID, 0);
     glUniform1i(depthID_inner, 1);
     glUniform1i(depthID_outer, 2);
 
-  GLuint depthprogramID = LoadShaders("VertexShader_fb.vertexshader", "FragmentShader_fb.fragmentshader"); //load shaders
+    GLuint depthprogramID = LoadShaders("VertexShader_fb.vertexshader", "FragmentShader_fb.fragmentshader"); //load shaders
     GLuint depthMatrixID = glGetUniformLocation(depthprogramID, "depthMVP"); //load MVP matrix to shader
     GLuint rotationID = glGetUniformLocation( depthprogramID, "rotation");
     GLuint puppetID = glGetUniformLocation(depthprogramID, "puppet_texture");
     glUseProgram(depthprogramID); 
     glUniform1i(puppetID, 0);
 
+    GLuint screenprogramID = LoadShaders("VertexShader_cb.vertexshader", "FragmentShader_cb.fragmentshader"); //load shaders
+    GLuint screenID = glGetUniformLocation(screenprogramID, "screenTexture");
+    glUseProgram(screenprogramID); 
+    glUniform1i(screenID, 0);
+
+
+
+    glUseProgram(screenprogramID); //create screen texture with lighting model
+    glActiveTexture(GL_TEXTURE0); //load in screen texture
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb);
+
+        glEnableVertexAttribArray(0); //draw quad with textures mapped on.
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    GLint posAttribs = glGetAttribLocation(screenprogramID, "position");
+    glEnableVertexAttribArray(posAttribs);
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        0,  
+        (void*)0
+    );
+    glEnableVertexAttribArray(1); //use UV coords
+    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+    glVertexAttribPointer(
+        1,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        0,  
+        (void*)0
+    );
+    glDrawArrays(GL_TRIANGLES,0,6);
+    glDisableVertexAttribArray(0);
 
     std::chrono::time_point<std::chrono::system_clock>start,end;
     do{ //while window is open
-
 
 
         start = std::chrono::system_clock::now();
@@ -311,7 +358,7 @@ int main(int argc, char* argv[] ){
 
         glUseProgram(programID); //use screen shaders
         glActiveTexture(GL_TEXTURE0); //load in screen texture
-        glBindTexture(GL_TEXTURE_2D, textureID);
+        glBindTexture(GL_TEXTURE_2D, screen_tex);
         glActiveTexture(GL_TEXTURE1); //load in shadow map
         glBindTexture(GL_TEXTURE_2D, depthTexture[1]);
         glActiveTexture(GL_TEXTURE2); //load in shadow map
@@ -366,6 +413,8 @@ int main(int argc, char* argv[] ){
     ObjFile::clean_up(Vx_puppet,N_puppet, VT_puppet, FV_puppet, FN_puppet, FT_puppet);
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteBuffers(1, &vertexbuffer);
+    glDeleteBuffers(1, &puppet_vertexbuffer);
+    glDeleteBuffers(1, &UVbuffer);
     glDeleteBuffers(1, &colorbuffer);
     glDeleteBuffers(1, &depthTexture[1]);
     glDeleteBuffers(1, &depthTexture[0]);

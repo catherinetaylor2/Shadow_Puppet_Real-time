@@ -1,11 +1,12 @@
 #version 330 core 
 
- layout(location = 0) vec3 colour; 
+layout(location = 0) out vec3 color; 
 
- uniform sampler2D texture_puppet;
-
- in vec2 UV;
+uniform sampler2D screenTexture;
+in vec2 UV;
 
 void main() { 
-  colour = texture(texture_puppet,UV).rgb; 
+
+  color =texture(screenTexture, UV).rgb;
+
 } 
