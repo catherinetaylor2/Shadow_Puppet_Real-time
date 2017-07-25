@@ -13,17 +13,19 @@ in vec3 V;
 
 layout(location = 0) out vec3 color;
 
+#define min 7
+
 void main(){
     float a,b, occ = 0.0f;
-    int min = 7 ; // THIS IS SLOW BIT
+    vec2  u_v;
+    //int min = 7 ; // THIS IS SLOW BIT
     for(int i=-min; i<min+1;++i){
         for(int j=-min; j<min+1; ++j){
-            a=i/500.0f;
-            b=j/500.0f;
-            vec2  u_v = UV +vec2(a,b);
-            if(texture(depthTexture, u_v).x<1.0f){
-                occ++;
-            }
+            a=i*0.002f;
+            b=j*0.002f;
+            u_v = UV + vec2(a,b);
+            bool temp = texture(depthTexture, u_v).x <1.0f;
+            occ += float(temp);
         }
     }
     vec3 LightDir = 5*V - L;
