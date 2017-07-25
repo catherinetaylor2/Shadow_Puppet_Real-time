@@ -11,6 +11,7 @@
 #include "shader.hpp"
 #include "BITMAP.hpp"
 #include"Read_Obj.hpp"
+#include <vector>
 #include "initializing.hpp"
 #include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
@@ -29,6 +30,7 @@ int main(int argc, char* argv[] ){
 		height = 500;
 	}
 
+    float widthRatio = 1.0f/(float)width, heightRatio = 1.0f/(float)height;
 //screen texture data
     unsigned char * texture_data;
 	int texture_width, texture_height;
@@ -134,14 +136,15 @@ int main(int argc, char* argv[] ){
     initialize_texture(textureID[0], texture_data, texture_width, texture_height);
     initialize_texture(textureID[1], puppet_data, puppet_width, puppet_height);
 
-    GLuint framebuffer[3]; //create 3 framebuffers
-    glGenFramebuffers(3, framebuffer);
-    GLuint depthTexture[3]; // generate 3 textures which will cbe written too
-    glGenTextures(3, depthTexture);
+    GLuint framebuffer[4]; //create 3 framebuffers
+    glGenFramebuffers(4, framebuffer);
+    GLuint depthTexture[4]; // generate 3 textures which will cbe written too
+    glGenTextures(4, depthTexture);
     
     initialize_colour_buffer(framebuffer[2], depthTexture[2], width, height); //screen texture will be written to this
     initialize_depth_buffer(framebuffer[0], depthTexture[0], width, height);  //outer light buffer (shadow map)
     initialize_depth_buffer(framebuffer[1], depthTexture[1], width, height);  //inner light buffer
+    initialize_colour_buffer(framebuffer[3], depthTexture[3], width, height); //blurring texture
 //-------------------------------------------------------------------------------------------------------------
 //CREATE VERTEX AND INDEX BUFFERS:
 
@@ -165,8 +168,10 @@ int main(int argc, char* argv[] ){
  
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //LOAD SHADERS:
-    GLuint programID = LoadShaders("VertexShader.vertexshader", "FragmentShader.fragmentshader"); //load screen shaders
+    GLuint programID = LoadShaders("VertexShader.glsl", "FragmentShader.glsl"); //load screen shaders
     GLuint LightID = glGetUniformLocation(programID, "LightPos");
+    GLuint widthID2 = glGetUniformLocation(programID, "widthRatio");
+    GLuint heightID2= glGetUniformLocation(programID, "heightRatio");
     GLuint texID= glGetUniformLocation(programID, "renderedTexture"); //three textures inputted to fragment shader
     GLuint depthID_inner = glGetUniformLocation(programID, "depthTexture");
     GLuint depthID_outer =  glGetUniformLocation(programID, "depthTexture_outer");
@@ -175,18 +180,55 @@ int main(int argc, char* argv[] ){
     glUniform1i(depthID_inner, 1);
     glUniform1i(depthID_outer, 2);
 
-    GLuint depthprogramID = LoadShaders("VertexShader_fb.vertexshader", "FragmentShader_fb.fragmentshader"); //load shaders
+
+// GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+// const GLchar *source ="FragmentShader.glsl";
+// glShaderSource(fragmentShader, 1, &source, 0);
+// glCompileShader(fragmentShader);
+
+// GLint isCompiled = 0;
+// glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
+// if(isCompiled == GL_FALSE)
+// {
+// 	GLint maxLength = 0;
+// 	glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+// 	//The maxLength includes the NULL character
+// 	std::vector<GLchar> infoLog(maxLength);
+// 	glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
+// 	for(auto &c: infoLog){
+//         std::cout<<c;
+//     }
+//     std::cout<<"\n";
+// 	//We don't need the shader anymore.
+// 	glDeleteShader(fragmentShader);
+
+// 	return 1;
+// }
+
+
+glm::mat4 I = glm::mat4(1.0f);
+
+    GLuint depthprogramID = LoadShaders("VertexShader_fb.glsl", "FragmentShader_fb.glsl"); //load shaders
     GLuint depthMatrixID = glGetUniformLocation(depthprogramID, "depthMVP"); //load MVP matrix to shader
     GLuint rotationID = glGetUniformLocation( depthprogramID, "rotation");
     GLuint puppetID = glGetUniformLocation(depthprogramID, "puppet_texture");
     glUseProgram(depthprogramID); 
     glUniform1i(puppetID, 0);
 
-    GLuint screenprogramID = LoadShaders("VertexShader_cb.vertexshader", "FragmentShader_cb.fragmentshader"); //load shaders
+    GLuint screenprogramID = LoadShaders("VertexShader_cb.glsl", "FragmentShader_cb.glsl"); //load shaders
     GLuint screen_LightID = glGetUniformLocation(screenprogramID, "LightPos");
     GLuint screenID = glGetUniformLocation(screenprogramID, "screenTexture");
     glUseProgram(screenprogramID); 
     glUniform1i(screenID, 0);
+
+    GLuint blurringID =  LoadShaders("VertexShader_blur.glsl", "FragmentShader_blur.glsl");
+    GLuint widthID = glGetUniformLocation(programID, "widthRatio");
+    GLuint heightID = glGetUniformLocation(programID, "heightRatio");
+    GLuint depthMatrixIDb = glGetUniformLocation(blurringID, "depthMVP");
+    GLuint puppetID2 = glGetUniformLocation(depthprogramID, "puppet_texture");
+    glUseProgram(depthprogramID); 
+    glUniform1i(puppetID2, 0);
 
 
     //WRITE SCREEN TEXTURE USING LIGHTING MODEL.
@@ -194,6 +236,14 @@ int main(int argc, char* argv[] ){
     GLint posAttribs = glGetAttribLocation(screenprogramID, "position");
     write_to_colour_buffer(framebuffer[2], textureID[0], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribs, number_of_faces, screen_LightID, LightPos);
     
+    glUseProgram(blurringID); //create screen texture with lighting model
+    GLint posAttribb = glGetAttribLocation(screenprogramID, "position");
+    glUniform1f(heightID, heightRatio);
+    glUniform1f(widthID, widthRatio);
+    glUniformMatrix4fv(depthMatrixIDb, 1, GL_FALSE, &I[0][0]);
+    write_to_colour_buffer(framebuffer[3], textureID[1], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, number_of_faces, screen_LightID, LightPos);
+   
+
     int  it=0;
     double start = glfwGetTime();
 
@@ -204,7 +254,7 @@ int main(int argc, char* argv[] ){
         //Render to shadow maps:
         glUseProgram(depthprogramID); //use shadow map shaders       
         GLint posAttrib_shadow = glGetAttribLocation(depthprogramID, "position"); 
-        write_to_shadow_map(framebuffer[1],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, number_of_faces_puppet,indexbuffer[1],rotationID, rotation, textureID[1], uvbuffer[1]);
+        write_to_shadow_map(framebuffer[1],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, number_of_faces_puppet,indexbuffer[1],rotationID, rotation, depthTexture[3], uvbuffer[1]);
         write_to_shadow_map(framebuffer[0],depthMatrixID, depthMVP_outer, vertexbuffer[1], posAttrib_shadow, number_of_faces_puppet,indexbuffer[1],rotationID,rotation, textureID[1], uvbuffer[1]);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); //bind to default frame buffer
@@ -218,6 +268,8 @@ int main(int argc, char* argv[] ){
         glActiveTexture(GL_TEXTURE2); //load in shadow map
         glBindTexture(GL_TEXTURE_2D, depthTexture[0]);
         glUniform3fv(LightID,1,&LightPos[0]);
+        glUniform1f(heightID2, heightRatio);
+        glUniform1f(widthID2, widthRatio);
 
         glEnableVertexAttribArray(0); //draw quad with textures mapped on.
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer[2]);
