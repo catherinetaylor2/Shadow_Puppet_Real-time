@@ -73,7 +73,7 @@ int main(int argc, char* argv[] ){
 //screen texture data
     unsigned char * texture_data;
 	int texture_width, texture_height;
-	texture_data = readBMP("sheet6.bmp", &texture_width, &texture_height);
+	texture_data = readBMP("sheet.bmp", &texture_width, &texture_height);
 
 //puppet texture data
     unsigned char *puppet_data;
@@ -126,7 +126,7 @@ int main(int argc, char* argv[] ){
     
 //CAMERA POSITION DATA-----------------------------------------------------------------------------------------
 
-glm::vec3 LightPos = glm::vec3(0.0f,0.0f,50.0f);
+glm::vec3 LightPos = glm::vec3(0.0f,0.0f,40.0f);
     // glm::mat4 ViewMatrix =  glm::lookAt( glm::vec3(0,0,-4), // position of camera
     //                             glm::vec3(0,0,1),  // look at vector
     //                             glm::vec3(0,1,0)  //look up vector
@@ -316,6 +316,7 @@ glm::vec3 LightPos = glm::vec3(0.0f,0.0f,50.0f);
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //LOAD SHADERS:
     GLuint programID = LoadShaders("VertexShader.vertexshader", "FragmentShader.fragmentshader"); //load screen shaders
+    GLuint LightID = glGetUniformLocation(programID, "LightPos");
     GLuint texID= glGetUniformLocation(programID, "renderedTexture"); //three textures inputted to fragment shader
     GLuint depthID_inner = glGetUniformLocation(programID, "depthTexture");
     GLuint depthID_outer =  glGetUniformLocation(programID, "depthTexture_outer");
@@ -332,16 +333,18 @@ glm::vec3 LightPos = glm::vec3(0.0f,0.0f,50.0f);
     glUniform1i(puppetID, 0);
 
     GLuint screenprogramID = LoadShaders("VertexShader_cb.vertexshader", "FragmentShader_cb.fragmentshader"); //load shaders
-    GLuint LightID = glGetUniformLocation(screenprogramID, "LightPos");
+    GLuint screen_LightID = glGetUniformLocation(screenprogramID, "LightPos");
     GLuint screenID = glGetUniformLocation(screenprogramID, "screenTexture");
     glUseProgram(screenprogramID); 
     glUniform1i(screenID, 0);
 
+
+//WRITE SCREEN TEXTURE USING LIGHTING MODEL.
     glUseProgram(screenprogramID); //create screen texture with lighting model
     glActiveTexture(GL_TEXTURE0); //load in screen texture
     glBindTexture(GL_TEXTURE_2D, textureID);
     glBindFramebuffer(GL_FRAMEBUFFER, fb);
-    glUniform3fv(LightID,1,&LightPos[0]);
+    glUniform3fv(screen_LightID,1,&LightPos[0]);
 
     glEnableVertexAttribArray(0); //draw quad with textures mapped on.
     glBindBuffer(GL_ARRAY_BUFFER, screen_vertexbuffer);
@@ -370,10 +373,12 @@ glm::vec3 LightPos = glm::vec3(0.0f,0.0f,50.0f);
     glDisableVertexAttribArray(0);
 
     std::chrono::time_point<std::chrono::system_clock>start,end;
+    int  it=0;
+    start = std::chrono::system_clock::now();
+
     do{ //while window is open
 
-
-        start = std::chrono::system_clock::now();
+        it++;
 
         //Render to shadow maps:
         glUseProgram(depthprogramID); //use shadow map shaders       
@@ -395,6 +400,8 @@ glm::vec3 LightPos = glm::vec3(0.0f,0.0f,50.0f);
         glBindTexture(GL_TEXTURE_2D, depthTexture[1]);
         glActiveTexture(GL_TEXTURE2); //load in shadow map
         glBindTexture(GL_TEXTURE_2D, depthTexture[0]);
+        
+        glUniform3fv(LightID,1,&LightPos[0]);
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
@@ -427,16 +434,19 @@ glm::vec3 LightPos = glm::vec3(0.0f,0.0f,50.0f);
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-       rot_angle += 0.01f; 
-        rotation = {cos(rot_angle), sin(rot_angle), 0.0f, 0.0f,
-                    - sin(rot_angle), cos(rot_angle),0.0f, 0.0f,
-                    0.0f, 0.0f,1.0f, 0.0f,
-                    0.0f, 0.0f, 0.0f,1.0f,};
-    end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_time = end - start;
-//    std::cout<<"frame rate "<<1.0f/elapsed_time.count()<<"\n";
+        // rot_angle += 0.01f; 
+        // rotation = {cos(rot_angle), sin(rot_angle), 0.0f, 0.0f,
+        //             - sin(rot_angle), cos(rot_angle),0.0f, 0.0f,
+        //             0.0f, 0.0f,1.0f, 0.0f,
+        //             0.0f, 0.0f, 0.0f,1.0f,};
+     
 
     }while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0); //close if escape pressed
+   
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_time = end - start;
+    double a = elapsed_time.count()/(double)it;
+    std::cout<<" frame time "<<a<<" frame rate "<<1.0f/(a)<<"\n";
 
 //clear up and delete buffers
     delete[] texture_data;
