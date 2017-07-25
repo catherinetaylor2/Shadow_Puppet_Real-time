@@ -31,14 +31,14 @@ int main(int argc, char* argv[] ){
 
     unsigned char * ScreenTextureData, *PuppetTextureData; 
 	int texture_width, texture_height, puppet_width, puppet_height;
-	ScreenTextureData = readBMP("sheet.bmp", &texture_width, &texture_height); //screen texture data
-    PuppetTextureData = readBMP("dino_texture.bmp", &puppet_width, &puppet_height); //puppet texture data
+	ScreenTextureData = readBMP("Textures/sheet.bmp", &texture_width, &texture_height); //screen texture data
+    PuppetTextureData = readBMP("Textures/dino_texture.bmp", &puppet_width, &puppet_height); //puppet texture data
 
     float *VerticesPuppet, *NormalsPuppet, *TexturesPuppet, *VerticesScreen, *NormalsScreen, *TexturesScreen; 
     int NumberOfPuppetFaces, *FaceVerticesPuppet, *FaceNormalsPuppet, *FaceTexturesPuppet, NumberOfPuppetVertices, NumberOfScreenFaces, *FaceVerticesScreen, *FaceNormalsScreen, *FaceTexturesScreen, NumberOfScreenVertices;
-    ObjFile mesh_puppet("quad.obj"); //Input mesh of puppet as obj file
+    ObjFile mesh_puppet("Objects/quad.obj"); //Input mesh of puppet as obj file
 	mesh_puppet.get_mesh_data(mesh_puppet, &FaceVerticesPuppet, &FaceNormalsPuppet, &FaceTexturesPuppet, &TexturesPuppet, &NormalsPuppet, &VerticesPuppet, &NumberOfPuppetFaces, &NumberOfPuppetVertices);
-    ObjFile mesh_screen("plane.obj"); //Input plane with lots of triangles
+    ObjFile mesh_screen("Objects/plane.obj"); //Input plane with lots of triangles
 	mesh_screen.get_mesh_data(mesh_screen, &FaceVerticesScreen, &FaceNormalsScreen, &FaceTexturesScreen, &TexturesScreen, &NormalsScreen, &VerticesScreen, &NumberOfScreenFaces, &NumberOfScreenVertices);
 
 	std::cout<<"Inputed files loaded \n"; //ADD IN ERROR TEST?
@@ -149,7 +149,7 @@ int main(int argc, char* argv[] ){
  
 //---------------------------------------------------------------------------------------------------------------------------------------------------
 //LOAD SHADERS:
-    GLuint programID = LoadShaders("VertexShader.glsl", "FragmentShader.glsl"); //load screen shaders
+    GLuint programID = LoadShaders("Shaders/VertexShader.glsl", "Shaders/FragmentShader.glsl"); //load screen shaders
     GLuint LightID = glGetUniformLocation(programID, "LightPos");
     GLuint ScreenTextureID = glGetUniformLocation(programID, "rEndTimeeredTexture"); //three textures inputted to fragment shader
     GLuint ShadowMapInnerID = glGetUniformLocation(programID, "depthTexture"); //inner shadow map
@@ -159,20 +159,20 @@ int main(int argc, char* argv[] ){
     glUniform1i(ShadowMapInnerID, 1);
     glUniform1i(ShadowMapOuterID, 2);
 
-    GLuint ShadowMapProgramID = LoadShaders("VertexShader_fb.glsl", "FragmentShader_fb.glsl"); //load shaders
+    GLuint ShadowMapProgramID = LoadShaders("Shaders/VertexShader_fb.glsl", "Shaders/FragmentShader_fb.glsl"); //load shaders
     GLuint depthMatrixID = glGetUniformLocation(ShadowMapProgramID, "depthMVP"); //load MVP matrix to shader
     GLuint rotationMatrixID = glGetUniformLocation(ShadowMapProgramID, "rotation"); //load in rotation matrix
     GLuint PuppetTextureID = glGetUniformLocation(ShadowMapProgramID, "puppet_texture");
     glUseProgram(ShadowMapProgramID); 
     glUniform1i(PuppetTextureID, 0);
 
-    GLuint screenprogramID = LoadShaders("VertexShader_cb.glsl", "FragmentShader_cb.glsl"); //load shaders
+    GLuint screenprogramID = LoadShaders("Shaders/VertexShader_cb.glsl", "Shaders/FragmentShader_cb.glsl"); //load shaders
     GLuint screen_LightID = glGetUniformLocation(screenprogramID, "LightPos"); //load light pos
     GLuint screenID = glGetUniformLocation(screenprogramID, "screenTexture");
     glUseProgram(screenprogramID); 
     glUniform1i(screenID, 0);
 
-    GLuint BlurringProgramID =  LoadShaders("VertexShader_blur.glsl", "FragmentShader_blur.glsl"); //load blurring shader program
+    GLuint BlurringProgramID =  LoadShaders("Shaders/VertexShader_blur.glsl", "Shaders/FragmentShader_blur.glsl"); //load blurring shader program
     GLuint widthID = glGetUniformLocation(BlurringProgramID, "widthRatio");
     GLuint heightID = glGetUniformLocation(BlurringProgramID, "heightRatio");
     GLuint blurringMatrix = glGetUniformLocation(BlurringProgramID, "depthMVP");
