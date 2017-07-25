@@ -170,8 +170,6 @@ int main(int argc, char* argv[] ){
 //LOAD SHADERS:
     GLuint programID = LoadShaders("VertexShader.glsl", "FragmentShader.glsl"); //load screen shaders
     GLuint LightID = glGetUniformLocation(programID, "LightPos");
-    GLuint widthID2 = glGetUniformLocation(programID, "widthRatio");
-    GLuint heightID2= glGetUniformLocation(programID, "heightRatio");
     GLuint texID= glGetUniformLocation(programID, "renderedTexture"); //three textures inputted to fragment shader
     GLuint depthID_inner = glGetUniformLocation(programID, "depthTexture");
     GLuint depthID_outer =  glGetUniformLocation(programID, "depthTexture_outer");
@@ -179,35 +177,6 @@ int main(int argc, char* argv[] ){
     glUniform1i(texID, 0);
     glUniform1i(depthID_inner, 1);
     glUniform1i(depthID_outer, 2);
-
-
-// GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-// const GLchar *source ="FragmentShader.glsl";
-// glShaderSource(fragmentShader, 1, &source, 0);
-// glCompileShader(fragmentShader);
-
-// GLint isCompiled = 0;
-// glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
-// if(isCompiled == GL_FALSE)
-// {
-// 	GLint maxLength = 0;
-// 	glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-// 	//The maxLength includes the NULL character
-// 	std::vector<GLchar> infoLog(maxLength);
-// 	glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
-// 	for(auto &c: infoLog){
-//         std::cout<<c;
-//     }
-//     std::cout<<"\n";
-// 	//We don't need the shader anymore.
-// 	glDeleteShader(fragmentShader);
-
-// 	return 1;
-// }
-
-
-glm::mat4 I = glm::mat4(1.0f);
 
     GLuint depthprogramID = LoadShaders("VertexShader_fb.glsl", "FragmentShader_fb.glsl"); //load shaders
     GLuint depthMatrixID = glGetUniformLocation(depthprogramID, "depthMVP"); //load MVP matrix to shader
@@ -236,16 +205,16 @@ glm::mat4 I = glm::mat4(1.0f);
     GLint posAttribs = glGetAttribLocation(screenprogramID, "position");
     write_to_colour_buffer(framebuffer[2], textureID[0], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribs, number_of_faces, screen_LightID, LightPos);
     
-    glUseProgram(blurringID); //create screen texture with lighting model
+    glUseProgram(blurringID); //created blurred inside of shadow
     GLint posAttribb = glGetAttribLocation(screenprogramID, "position");
     glUniform1f(heightID, heightRatio);
     glUniform1f(widthID, widthRatio);
-    glUniformMatrix4fv(depthMatrixIDb, 1, GL_FALSE, &I[0][0]);
+    glUniformMatrix4fv(depthMatrixIDb, 1, GL_FALSE, &glm::mat4(1.0f)[0][0]);
     write_to_colour_buffer(framebuffer[3], textureID[1], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, number_of_faces, screen_LightID, LightPos);
    
 
     int  it=0;
-    double start = glfwGetTime();
+    double start = glfwGetTime(); //start timer
 
     do{ //while window is open
 
@@ -254,7 +223,7 @@ glm::mat4 I = glm::mat4(1.0f);
         //Render to shadow maps:
         glUseProgram(depthprogramID); //use shadow map shaders       
         GLint posAttrib_shadow = glGetAttribLocation(depthprogramID, "position"); 
-        write_to_shadow_map(framebuffer[1],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, number_of_faces_puppet,indexbuffer[1],rotationID, rotation, depthTexture[3], uvbuffer[1]);
+        write_to_shadow_map(framebuffer[1],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, number_of_faces_puppet,indexbuffer[1],rotationID, rotation, depthTexture[3], uvbuffer[1]); //pass blurred image to depth buffer
         write_to_shadow_map(framebuffer[0],depthMatrixID, depthMVP_outer, vertexbuffer[1], posAttrib_shadow, number_of_faces_puppet,indexbuffer[1],rotationID,rotation, textureID[1], uvbuffer[1]);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); //bind to default frame buffer
@@ -268,8 +237,6 @@ glm::mat4 I = glm::mat4(1.0f);
         glActiveTexture(GL_TEXTURE2); //load in shadow map
         glBindTexture(GL_TEXTURE_2D, depthTexture[0]);
         glUniform3fv(LightID,1,&LightPos[0]);
-        glUniform1f(heightID2, heightRatio);
-        glUniform1f(widthID2, widthRatio);
 
         glEnableVertexAttribArray(0); //draw quad with textures mapped on.
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer[2]);
@@ -321,9 +288,9 @@ glm::mat4 I = glm::mat4(1.0f);
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteBuffers(3, vertexbuffer);
     glDeleteBuffers(3, uvbuffer);
-    glDeleteBuffers(3, depthTexture);
+    glDeleteBuffers(4, depthTexture);
     glDeleteBuffers(2, textureID);
-    glDeleteFramebuffers(3, framebuffer);  
+    glDeleteFramebuffers(4, framebuffer);  
    
 
     return 0;

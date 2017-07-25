@@ -12,6 +12,6 @@ void main() {
     gl_FragDepth = 1.0f ; 
   }
   else{
-    gl_FragDepth =texture(puppet_texture, UV).x;//*gl_FragCoord.z;
+    gl_FragDepth =texture(puppet_texture, UV).x*gl_FragCoord.z;
   }
 } 
