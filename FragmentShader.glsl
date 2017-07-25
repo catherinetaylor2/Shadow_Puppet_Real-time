@@ -1,18 +1,16 @@
 #version 330 core
 
 in vec2 UV; 
-
-out vec3 colour;
+in vec3 L;
+in vec3 V;
 
 uniform sampler2D renderedTexture; //inputs shadow map and screen texture
 uniform sampler2D depthTexture;
 uniform sampler2D depthTexture_outer;
 
-in vec3 L;
-in vec3 V;
+out vec3 colour;
 
 void main(){
-
     vec3 LightDir = 5*V - L;
     vec3 n = vec3(0,0,-1.0f);
     vec3 l = normalize(LightDir);

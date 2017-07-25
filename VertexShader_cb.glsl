@@ -13,5 +13,4 @@ void main(){
     UV = uvCoords;
     L = LightPos;
     V = vertexPosition_modelspace;
-   
 } 

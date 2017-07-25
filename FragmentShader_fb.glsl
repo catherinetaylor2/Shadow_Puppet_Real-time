@@ -6,7 +6,6 @@ uniform sampler2D puppet_texture;
 
 in vec2 UV;
 
-
 void main() { 
   if((texture(puppet_texture, UV).x)==1.0f){
     gl_FragDepth = 1.0f ; 

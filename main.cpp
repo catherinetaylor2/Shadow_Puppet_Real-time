@@ -182,8 +182,8 @@ int main(int argc, char* argv[] ){
     glUniform1i(screenID, 0);
 
     GLuint blurringID =  LoadShaders("VertexShader_blur.glsl", "FragmentShader_blur.glsl"); //load blurring shader program
-    GLuint widthID = glGetUniformLocation(programID, "widthRatio");
-    GLuint heightID = glGetUniformLocation(programID, "heightRatio");
+    GLuint widthID = glGetUniformLocation(blurringID, "widthRatio");
+    GLuint heightID = glGetUniformLocation(blurringID, "heightRatio");
     GLuint depthMatrixIDb = glGetUniformLocation(blurringID, "depthMVP");
     GLuint puppetID2 = glGetUniformLocation(depthprogramID, "puppet_texture");
     glUseProgram(depthprogramID); 
@@ -194,7 +194,7 @@ int main(int argc, char* argv[] ){
     write_to_colour_buffer(framebuffer[2], textureID[0], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribs, number_of_faces, screen_LightID, LightPos);
     
     glUseProgram(blurringID); //created blurred inside of shadow
-    GLint posAttribb = glGetAttribLocation(screenprogramID, "position");
+    GLint posAttribb = glGetAttribLocation(blurringID, "position");
     glUniform1f(heightID, heightRatio);
     glUniform1f(widthID, widthRatio);
     glUniformMatrix4fv(depthMatrixIDb, 1, GL_FALSE, &glm::mat4(1.0f)[0][0]);
