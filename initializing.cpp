@@ -7,19 +7,22 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
 
-void write_to_shadow_map(GLuint framebuffer,GLuint depthMatrixID, glm::mat4 depthMVP, GLuint puppet_vertexbuffer, GLint posAttrib, int number_of_faces_puppet, GLuint IBO, GLuint rotationID, glm::mat4 rotation, GLuint puppet_textureID, GLuint UVbuffer){
+void write_to_shadow_map(GLuint framebuffer,GLuint MVPMatrixID, glm::mat4 MVPMatrix, GLuint vertexBuffer, GLint posAttrib, int NumberOfFaces, GLuint IndexBuffer, GLuint RotationMatrixMatrixID, glm::mat4 RotationMatrix, GLuint textureID, GLuint UVbuffer){
   
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); //bind to shadow map
-    glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]); //load in MVP matrix
-    glUniformMatrix4fv(rotationID, 1, GL_FALSE, &rotation[0][0]); //rotate image if wanted
-    glActiveTexture(GL_TEXTURE0); //load in puppet texture
-    glBindTexture(GL_TEXTURE_2D, puppet_textureID);
+    glUniformMatrix4fv(MVPMatrixID, 1, GL_FALSE, &MVPMatrix[0][0]); //load in MVP matrix
+    glUniformMatrix4fv(RotationMatrixMatrixID, 1, GL_FALSE, &RotationMatrix[0][0]); //Load in rotation matrix
+
+    glActiveTexture(GL_TEXTURE0); //load in textures
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
     glEnable(GL_DEPTH_TEST); //find depth values
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, puppet_vertexbuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO); 
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBuffer); 
     glEnableVertexAttribArray(posAttrib);
     glVertexAttribPointer(  0, // 0  is vertex
                             3, //size of information
@@ -38,9 +41,10 @@ void write_to_shadow_map(GLuint framebuffer,GLuint depthMatrixID, glm::mat4 dept
                             0
                         );
 
-    glDrawElements(GL_TRIANGLES, 3*number_of_faces_puppet,  GL_UNSIGNED_INT,0); // draw mesh
+    glDrawElements(GL_TRIANGLES, 3*NumberOfFaces,  GL_UNSIGNED_INT,0); //render to depth buffer
     glDisableVertexAttribArray(0);
 };
+
 void initialize_depth_buffer(GLuint framebuffer, GLuint renderedTexture, int width, int height){
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);

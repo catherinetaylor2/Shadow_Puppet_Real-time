@@ -35,11 +35,11 @@ int main(int argc, char* argv[] ){
     PuppetTextureData = readBMP("dino_texture.bmp", &puppet_width, &puppet_height); //puppet texture data
 
     float *VerticesPuppet, *NormalsPuppet, *TexturesPuppet, *VerticesScreen, *NormalsScreen, *TexturesScreen; 
-    int NumberOfPuppetFaces, *FaceVerticesPuppet, *FaceNormalsPuppet, *FaceTexturesPuppet, NumberOfPuppetVertices, NumberOfScreenFaces, *FaceVerticesScreen, *FaceNormalsScreen, *FaceTexturesScreen, number_of_vertices;
+    int NumberOfPuppetFaces, *FaceVerticesPuppet, *FaceNormalsPuppet, *FaceTexturesPuppet, NumberOfPuppetVertices, NumberOfScreenFaces, *FaceVerticesScreen, *FaceNormalsScreen, *FaceTexturesScreen, NumberOfScreenVertices;
     ObjFile mesh_puppet("quad.obj"); //Input mesh of puppet as obj file
 	mesh_puppet.get_mesh_data(mesh_puppet, &FaceVerticesPuppet, &FaceNormalsPuppet, &FaceTexturesPuppet, &TexturesPuppet, &NormalsPuppet, &VerticesPuppet, &NumberOfPuppetFaces, &NumberOfPuppetVertices);
     ObjFile mesh_screen("plane.obj"); //Input plane with lots of triangles
-	mesh_screen.get_mesh_data(mesh_screen, &FaceVerticesScreen, &FaceNormalsScreen, &FaceTexturesScreen, &TexturesScreen, &NormalsScreen, &VerticesScreen, &NumberOfScreenFaces, &number_of_vertices);
+	mesh_screen.get_mesh_data(mesh_screen, &FaceVerticesScreen, &FaceNormalsScreen, &FaceTexturesScreen, &TexturesScreen, &NormalsScreen, &VerticesScreen, &NumberOfScreenFaces, &NumberOfScreenVertices);
 
 	std::cout<<"Inputed files loaded \n"; //ADD IN ERROR TEST?
 
@@ -54,8 +54,7 @@ int main(int argc, char* argv[] ){
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-//create openGL window
-    GLFWwindow *window;
+    GLFWwindow *window; //create openGL window
     window = glfwCreateWindow(width, height, "Shadow Puppet", NULL, NULL);
     
     if(window==NULL){
@@ -93,7 +92,6 @@ int main(int argc, char* argv[] ){
                             0.0f, 0.0f,1.0f, 0.0f,
                             0.0f, 0.0f, 0.0f,1.0f,};
 
-// Screen texture data:
     float ScreenVer [] = { //quad filling whole screen with only 2 triangles
         -1.0f,-1.0f, 0.0f,
         1.0f, -1.0f, 0.0f,
@@ -111,7 +109,6 @@ int main(int argc, char* argv[] ){
         1.0f, 1.0f, 
         0.0f, 1.0f,
     };
-
 //-----------------------------------------------------------------------------------------------------------
 //CREATE FRAMEBUFFERS AND TEXTURES: 
 
@@ -139,8 +136,8 @@ int main(int argc, char* argv[] ){
     GLuint uvbuffer[3];
     glGenBuffers(3, uvbuffer);
 
-    initialize_array_buffer(vertexbuffer[0], 3*number_of_vertices*sizeof(float), &VerticesScreen[0]); //buffers for initial screen data
-    initialize_array_buffer(uvbuffer[0], 2*number_of_vertices*sizeof(float), &TexturesScreen[0]);
+    initialize_array_buffer(vertexbuffer[0], 3*NumberOfScreenVertices*sizeof(float), &VerticesScreen[0]); //buffers for initial screen data
+    initialize_array_buffer(uvbuffer[0], 2*NumberOfScreenVertices*sizeof(float), &TexturesScreen[0]);
     initialize_element_array_buffer(indexbuffer[0],3*NumberOfScreenFaces*sizeof(unsigned int), &FaceVerticesScreen[0]);
     
     initialize_array_buffer(vertexbuffer[1], 3*NumberOfPuppetVertices*sizeof(float), &VerticesPuppet[0]); //buffers for puppet data
@@ -194,11 +191,11 @@ int main(int argc, char* argv[] ){
     glUniformMatrix4fv(blurringMatrix, 1, GL_FALSE, &glm::mat4(1.0f)[0][0]);
     write_to_colour_buffer(framebuffer[3], textureID[1], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, screen_LightID, LightPos);
 
-    int  it=0; //number of iterations
+    int  iterations = 0; //number of iterations
     double StartTime = glfwGetTime(); //Start timer
 
     do{ //while window is open
-        it++;
+        iterations++;
       
         glUseProgram(ShadowMapProgramID); //use shadow map shaders       
         GLint posAttrib_shadow = glGetAttribLocation(ShadowMapProgramID, "position");   //REndTimeer to shadow maps:
@@ -256,7 +253,7 @@ int main(int argc, char* argv[] ){
    
     double EndTime = glfwGetTime();
     double ElapsedTime = EndTime - StartTime;
-    double frameTime = ElapsedTime/(double)it;
+    double frameTime = ElapsedTime/(double)iterations;
     std::cout<<" frame time "<<frameTime<<" frame rate "<<1.0f/frameTime<<"\n"; //show frame rate
 
 //clear up and delete buffers
