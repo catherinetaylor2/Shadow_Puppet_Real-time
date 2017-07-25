@@ -11,10 +11,10 @@ uniform sampler2D depthTexture_outer;
 out vec3 colour;
 
 void main(){
-    vec3 LightDir = 5*V - L;
+    vec3 LightDir = 5.0f*V - L;
     vec3 n = vec3(0,0,-1.0f);
     vec3 l = normalize(LightDir);
-    float diffuseCoeff = 1.3*pow(dot(n,l),10.0f);
+    float diffuseCoeff = 1.3f*pow(dot(n,l),10.0f);
     float m = min(1.0f, texture(depthTexture_outer, UV).r+0.75f);
     colour = diffuseCoeff*m*texture(renderedTexture, UV).rgb*texture(depthTexture,UV).r; //colour depends on distance between light and screen.
 }
