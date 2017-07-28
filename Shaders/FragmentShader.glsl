@@ -15,6 +15,5 @@ void main(){
     vec3 n = vec3(0,0,-1.0f);
     vec3 l = normalize(LightDir);
     float diffuseCoeff = 1.3f*pow(dot(n,l),10.0f);
-    float m = min(1.0f, texture(depthTexture_outer, UV).r+0.75f);
-    colour = diffuseCoeff*m*texture(renderedTexture, UV).rgb*texture(depthTexture,UV).r; //colour depends on distance between light and screen.
+    colour = texture(renderedTexture, UV).rgb*(1.0f - texture(depthTexture_outer, UV).r/3.5f)*(1.0f - texture(depthTexture,UV).r/1.75f);
 }

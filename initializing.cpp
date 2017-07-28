@@ -86,7 +86,13 @@ void initialize_texture(GLuint textureID, unsigned char* data, int width, int he
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
+void initialize_Integral_texture(GLuint textureID,float* data, int width, int height){
 
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+}
 void initialize_array_buffer(GLuint array_buffer, float size, float data []){
     glBindBuffer(GL_ARRAY_BUFFER, array_buffer); //buffer containing screen mesh
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
@@ -128,4 +134,13 @@ void write_to_colour_buffer(GLuint framebuffer, GLuint textureID, GLuint vertexb
     );
     glDrawElements(GL_TRIANGLES, 3*NumberOfFaces,  GL_UNSIGNED_INT,0); // draw mesh
     glDisableVertexAttribArray(0);
+}
+
+
+glm::mat4 GetLightCornerMatrix(float LightLength, glm::vec3 LightPos){
+    glm::mat4 LightCorners ={LightPos.x - LightLength/2.0f, LightPos.y + LightLength/2.0f, LightPos.z, 0,
+                            LightPos.x + LightLength/2.0f, LightPos.y + LightLength/2.0f, LightPos.z, 0,
+                            LightPos.x - LightLength/2.0f, LightPos.y - LightLength/2.0f, LightPos.z,0,
+                            LightPos.x + LightLength/2.0f, LightPos.y - LightLength/2.0f, LightPos.z, 0};
+    return LightCorners;
 }
