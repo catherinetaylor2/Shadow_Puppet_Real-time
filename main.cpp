@@ -66,7 +66,7 @@ int main(int argc, char* argv[] ){
     unsigned char * ScreenTextureData, *PuppetTextureData; 
 	int texture_width, texture_height, PuppetWidth, PuppetHeight;
 	ScreenTextureData = readBMP("Textures/sheet.bmp", &texture_width, &texture_height); //screen texture data
-    PuppetTextureData = readBMP("Textures/dino_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data
+    PuppetTextureData = readBMP("Textures/turtle_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data
 
     CreateIntegralImage(PuppetTextureData, PuppetWidth, PuppetHeight, &IntegralImage);
 
@@ -115,7 +115,7 @@ int main(int argc, char* argv[] ){
    
 //light data
     glm::vec3 LightPos = glm::vec3(0.0f,0.0f,50.0f);
-    float LightLength = 0.75f;
+    float LightLength = 1.75f;
     glm::mat4 LightCorners =GetLightCornerMatrix(LightLength, LightPos);
 
     glm::vec3 LightPosOuter = glm::vec3(0.0f,0.0f,30.0f);
@@ -165,9 +165,9 @@ int main(int argc, char* argv[] ){
     initialize_texture(textureID[0], ScreenTextureData, texture_width, texture_height);
     initialize_Integral_texture(textureID[1], IntegralImage, PuppetWidth, PuppetHeight);
 
-    GLuint framebuffer[3]; //create 4 framebuffers
+    GLuint framebuffer[3]; //create 3 framebuffers
     glGenFramebuffers(3, framebuffer);
-    GLuint depthTexture[3]; // generate 4 textures which will be written too
+    GLuint depthTexture[3]; // generate 3 textures which will be written too
     glGenTextures(3, depthTexture);
     
     initialize_colour_buffer(framebuffer[2], depthTexture[2], width, height); //screen texture will be written to this

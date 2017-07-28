@@ -63,12 +63,12 @@ void main(){
     float height = QuadCorners[0].y -  QuadCorners[2].y;
     vec3 IntersectionPoints [4];
     vec3 RayDirection [4]; 
-    int v = 1, c;
+   int v = 1, c;
     for(int i=0;i<4;++i){
         RayDirection[i] = normalize((LightCornerVertices[i] - POI).xyz);
         IntersectionPoints[i] = FindIntersectionPoint(RayDirection[i], POI.xyz, QuadNormal, QuadCorners[0].xyz);
-        // c = TestInsideQuad(IntersectionPoints[i],  QuadCorners[0].xyz);
-        // v = v*int((c!=0));
+        c = TestInsideQuad(IntersectionPoints[i],  QuadCorners[0].xyz);
+        v = v*int((c!=0));
     }
     float IntersectionZ = 0.25f*(IntersectionPoints[0].z+IntersectionPoints[1].z+IntersectionPoints[2].z+IntersectionPoints[3].z);
     float dist = 1 - (IntersectionZ - POI.z)/100.0f;
@@ -80,11 +80,9 @@ void main(){
         }
         int  i = NumberOfPixels(UVcoords[0],UVcoords[1], UVcoords[2], dimRatio.x, dimRatio.y);
         float vis = Visibility(UVcoords[0],UVcoords[1], UVcoords[2], UVcoords[3], i, renderedTexture);
-    
         colour = vec3(dist*vis,0,0); //colour depends on distance between light and screen.
-
     }
-        else{
-            colour = vec3(v,0,0);
-        }
+    else{
+        colour = vec3(v,0,0);
+    }
 }
