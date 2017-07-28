@@ -118,7 +118,7 @@ int main(int argc, char* argv[] ){
     float LightLength = 0.75f;
     glm::mat4 LightCorners =GetLightCornerMatrix(LightLength, LightPos);
 
-        glm::vec3 LightPosOuter = glm::vec3(0.0f,0.0f,30.0f);
+    glm::vec3 LightPosOuter = glm::vec3(0.0f,0.0f,30.0f);
     float LightLengthOuter = 0.01f;
     glm::mat4 LightCornersOuter =GetLightCornerMatrix(LightLengthOuter, LightPosOuter);
 

@@ -2,14 +2,12 @@
 
 layout(location = 0) out vec3 colour; 
 
-
 in vec2 dimRatio;
 in mat4 LightCornerVertices;
 in vec4 POI;
 in mat4 QuadCorners;
 
 uniform sampler2D renderedTexture; 
-
 
 vec3 FindIntersectionPoint(vec3 RayDirection, vec3 RayOrigin, vec3 QuadNormal, vec3 QuadPoint){
     float d = dot(RayDirection, QuadNormal);
@@ -60,30 +58,21 @@ float Visibility(vec2 UV1, vec2 UV2, vec2 UV3, vec2 UV4, int NumberOfPixels, sam
 
 void main(){
 
-vec3 RayDirection [4]; 
-for(int i=0;i<4;++i){
-    RayDirection[i] = normalize((LightCornerVertices[i] - POI).xyz);
-}
-
-
-vec3 QuadNormal =QuadCorners[3].xyz;
-vec3 IntersectionPoints [4];
-
-float width = QuadCorners[1].x - QuadCorners[0].x;
-float height = QuadCorners[0].y -  QuadCorners[2].y;
-for(int i=0;i<4;++i){
-    IntersectionPoints[i] = FindIntersectionPoint(RayDirection[i], POI.xyz, QuadNormal, QuadCorners[0].xyz);
-}
-
-
-int v = 1, c;
-
-for(int i=0;i<4;++i){
-    c = TestInsideQuad(IntersectionPoints[i],  QuadCorners[0].xyz);
-    v = v*int((c!=0));
-}
-
-    if(v==1){
+    vec3 QuadNormal =QuadCorners[3].xyz;
+    float width = QuadCorners[1].x - QuadCorners[0].x;
+    float height = QuadCorners[0].y -  QuadCorners[2].y;
+    vec3 IntersectionPoints [4];
+    vec3 RayDirection [4]; 
+    int v = 1, c;
+    for(int i=0;i<4;++i){
+        RayDirection[i] = normalize((LightCornerVertices[i] - POI).xyz);
+        IntersectionPoints[i] = FindIntersectionPoint(RayDirection[i], POI.xyz, QuadNormal, QuadCorners[0].xyz);
+        // c = TestInsideQuad(IntersectionPoints[i],  QuadCorners[0].xyz);
+        // v = v*int((c!=0));
+    }
+    float IntersectionZ = 0.25f*(IntersectionPoints[0].z+IntersectionPoints[1].z+IntersectionPoints[2].z+IntersectionPoints[3].z);
+    float dist = 1 - (IntersectionZ - POI.z)/100.0f;
+   if(v==1){
 
         vec2 UVcoords[4];
         for(int i=0; i<4;++i){
@@ -92,7 +81,7 @@ for(int i=0;i<4;++i){
         int  i = NumberOfPixels(UVcoords[0],UVcoords[1], UVcoords[2], dimRatio.x, dimRatio.y);
         float vis = Visibility(UVcoords[0],UVcoords[1], UVcoords[2], UVcoords[3], i, renderedTexture);
     
-        colour = vec3(vis,0,0); //colour depends on distance between light and screen.
+        colour = vec3(dist*vis,0,0); //colour depends on distance between light and screen.
 
     }
         else{
