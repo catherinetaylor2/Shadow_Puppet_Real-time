@@ -22,20 +22,6 @@ vec3 FindIntersectionPoint(vec3 RayDirection, vec3 RayOrigin, vec3 QuadNormal, v
     }
 }
 
-int TestInsideQuad(vec3 POI, vec3 CornerPoint){
-    if(POI.z == 0){
-        return 0;
-    }
-    else if((POI.x<CornerPoint.x)||(POI.x>-1*CornerPoint.x)){
-        return 0;
-    }
-    else if((POI.y<-1*CornerPoint.y)||(POI.y>CornerPoint.y)){
-        return 0;
-    }
-    else{
-        return 1;
-    }
-}
 vec2 getUV(float xres, float yres, vec3 POI, vec3 lowerCorner, float width, float height){
     float x = lowerCorner.x;
     float y = lowerCorner.y;
@@ -51,7 +37,16 @@ int NumberOfPixels(vec2 UV1,vec2 UV2, vec2 UV3, float xres, float yres){
     return (c);
 }
 float Visibility(vec2 UV1, vec2 UV2, vec2 UV3, vec2 UV4, int NumberOfPixels, sampler2D tex){
-    float S = texture(tex, UV4).r -texture(tex, UV2).r - texture(tex, UV3).r +texture(tex, UV1).r;
+float x1 = (UV1.x-1)*float(UV1.x>0.0f)*float(UV1.x<1.0f)+float(UV1.x>1.0f); //optimize this
+float x2 = UV2.x*float(UV1.x>0.0f)*float(UV3.x<1.0f)+float(UV2.x>1.0f);
+float x3 = (UV3.x-1)*float(UV1.x>0.0f)*float(UV3.x<1.0f)+float(UV3.x>1.0f);
+float x4 = UV4.x*float(UV1.x>0.0f)*float(UV4.x<1.0f)+float(UV4.x>1.0f);
+float y1 = (UV1.y-1)*float(UV1.y>0.0f)*float(UV1.y<1.0f)+float(UV1.y>1.0f);
+float y2 = (UV2.y-1)*float(UV2.y>0.0f)*float(UV2.y<1.0f)+float(UV2.y>1.0f);
+float y3 = UV3.y*float(UV3.y>0.0f)*float(UV3.y<1.0f)+float(UV3.y>1.0f);
+float y4 = UV4.y*float(UV4.y>0.0f)*float(UV4.y<1.0f)+float(UV4.y>1.0f);
+
+    float S = texture(tex, vec2(x4,y4)).r -texture(tex, vec2(x2,y2)).r - texture(tex, vec2(x3,y3)).r +texture(tex, vec2(x1,y1)).r;
     float visfactor = S / float(NumberOfPixels);
     return visfactor;
 }
@@ -63,16 +58,14 @@ void main(){
     float height = QuadCorners[0].y -  QuadCorners[2].y;
     vec3 IntersectionPoints [4];
     vec3 RayDirection [4]; 
-   int v = 1, c;
+
     for(int i=0;i<4;++i){
         RayDirection[i] = normalize((LightCornerVertices[i] - POI).xyz);
         IntersectionPoints[i] = FindIntersectionPoint(RayDirection[i], POI.xyz, QuadNormal, QuadCorners[0].xyz);
-        c = TestInsideQuad(IntersectionPoints[i],  QuadCorners[0].xyz);
-        v = v*int((c!=0));
     }
     float IntersectionZ = 0.25f*(IntersectionPoints[0].z+IntersectionPoints[1].z+IntersectionPoints[2].z+IntersectionPoints[3].z);
     float dist = 1 - (IntersectionZ - POI.z)/100.0f;
-   if(v==1){
+   
 
         vec2 UVcoords[4];
         for(int i=0; i<4;++i){
@@ -81,8 +74,5 @@ void main(){
         int  i = NumberOfPixels(UVcoords[0],UVcoords[1], UVcoords[2], dimRatio.x, dimRatio.y);
         float vis = Visibility(UVcoords[0],UVcoords[1], UVcoords[2], UVcoords[3], i, renderedTexture);
         colour = vec3(dist*vis,0,0); //colour depends on distance between light and screen.
-    }
-    else{
-        colour = vec3(v,0,0);
-    }
+    
 }
