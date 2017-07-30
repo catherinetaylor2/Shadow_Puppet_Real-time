@@ -22,31 +22,30 @@ vec3 FindIntersectionPoint(vec3 RayDirection, vec3 RayOrigin, vec3 QuadNormal, v
     }
 }
 
-vec2 getUV(float xres, float yres, vec3 POI, vec3 lowerCorner, float width, float height){
+vec2 getUV(vec3 POI, vec3 lowerCorner, float width, float height){
     float x = lowerCorner.x;
     float y = lowerCorner.y;
-    float RatioHor = float(xres)/width;
     vec2 UV = vec2((POI.x-x)/float(width), (POI.y-y)/float(height));
     return UV;
 }
 
-int NumberOfPixels(vec2 UV1,vec2 UV2, vec2 UV3, float xres, float yres){
-    int a = int(abs(UV2.x - UV1.x)*xres);
-    int b = int(abs(UV3.y - UV1.y)*yres);
+int NumberOfPixels(vec2 UV[4], vec2 res){
+    int a = int(abs(UV[1].x - UV[0].x)*res.x);
+    int b = int(abs(UV[2].y - UV[0].y)*res.y);
     int c = a*b;
     return (c);
 }
-float Visibility(vec2 UV1, vec2 UV2, vec2 UV3, vec2 UV4, int NumberOfPixels, sampler2D tex){
-float x1 = (UV1.x-1.0f/2000.0f)*float((UV1.x-1.0f/2000.0f)>0.0f)*float((UV1.x-1.0f/2000.0f)<1.0f)+float((UV1.x-1.0f/2000.0f)>1.0f); //optimize this
-float x2 = UV2.x*float(UV2.x>0.0f)*float(UV3.x<1.0f)+float(UV2.x>1.0f);
-float x3 = (UV3.x-1.0f/2000.0f)*float((UV3.x-1.0f/2000.0f)>0.0f)*float((UV3.x-1.0f/2000.0f)<1.0f)+float((UV3.x-1.0f/2000.0f)>1.0f);
-float x4 = UV4.x*float(UV4.x>0.0f)*float(UV4.x<1.0f)+float(UV4.x>1.0f);
-float y1 = (UV1.y-1.0f/2000.0f)*float((UV1.y-1.0f/2000.0f)>0.0f)*float((UV1.y-1.0f/2000.0f)<1.0f)+float((UV1.y-1.0f/2000.0f)>1.0f);
-float y2 = (UV2.y-1.0f/2000.0f)*float((UV2.y-1.0f/2000.0f)>0.0f)*float((UV2.y-1.0f/2000.0f)<1.0f)+float((UV2.y-1.0f/2000.0f)>1.0f);
-float y3 = UV3.y*float(UV3.y>0.0f)*float(UV3.y<1.0f)+float(UV3.y>1.0f);
-float y4 = UV4.y*float(UV4.y>0.0f)*float(UV4.y<1.0f)+float(UV4.y>1.0f);
+float Visibility(vec2 UV[4], int NumberOfPixels, sampler2D tex, vec2 res){
 
-    float S = texture(tex, vec2(x4,y4)).r -texture(tex, vec2(x2,y2)).r - texture(tex, vec2(x3,y3)).r +texture(tex, vec2(x1,y1)).r;
+    for(int i=0; i<4; i++){
+        UV[i].x = UV[i].x - 1.0f/res.x*float((i+1)%2);
+        UV[i].x = (UV[i].x)*float(UV[i].x>0.0f)*float(UV[i].x<1.0f)+float(UV[i].x>1.0f);
+        UV[i].y = UV[i].y - 1.0f/res.y*float(i<2);
+        UV[i].y = (UV[i].y)*float(UV[i].y>0.0f)*float(UV[i].y<1.0f)+float(UV[i].y>1.0f);
+
+    }
+
+    float S = texture(tex, UV[3]).r -texture(tex, UV[1]).r - texture(tex, UV[2]).r +texture(tex, UV[0]).r;
     float visfactor = S / float(NumberOfPixels);
     return visfactor;
 }
@@ -67,12 +66,12 @@ void main(){
     float dist = 1 - (IntersectionZ - POI.z)/100.0f;
    
 
-        vec2 UVcoords[4];
-        for(int i=0; i<4;++i){
-            UVcoords[i] = getUV(dimRatio.x, dimRatio.y, IntersectionPoints[i], QuadCorners[2].xyz, width, height);
-        }
-        int  i = NumberOfPixels(UVcoords[0],UVcoords[1], UVcoords[2], dimRatio.x, dimRatio.y);
-        float vis = Visibility(UVcoords[0],UVcoords[1], UVcoords[2], UVcoords[3], i, renderedTexture);
-        colour = vec3(dist*vis,0,0); //colour depends on distance between light and screen.
+    vec2 UVcoords[4];
+    for(int i=0; i<4;++i){
+        UVcoords[i] = getUV(IntersectionPoints[i], QuadCorners[2].xyz, width, height);
+    }
+    int  i = NumberOfPixels(UVcoords, dimRatio);
+    float vis = Visibility( UVcoords,i, renderedTexture, dimRatio);
+    colour = vec3(dist*vis,0,0); //colour depends on distance between light and screen.
     
 }

@@ -66,7 +66,7 @@ int main(int argc, char* argv[] ){
     unsigned char * ScreenTextureData, *PuppetTextureData; 
 	int texture_width, texture_height, PuppetWidth, PuppetHeight;
 	ScreenTextureData = readBMP("Textures/sheet.bmp", &texture_width, &texture_height); //screen texture data
-    PuppetTextureData = readBMP("Textures/octopus_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data
+    PuppetTextureData = readBMP("Textures/dino_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data
 
     CreateIntegralImage(PuppetTextureData, PuppetWidth, PuppetHeight, &IntegralImage);
 
