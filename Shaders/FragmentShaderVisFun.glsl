@@ -37,12 +37,12 @@ int NumberOfPixels(vec2 UV1,vec2 UV2, vec2 UV3, float xres, float yres){
     return (c);
 }
 float Visibility(vec2 UV1, vec2 UV2, vec2 UV3, vec2 UV4, int NumberOfPixels, sampler2D tex){
-float x1 = (UV1.x-1)*float(UV1.x>0.0f)*float(UV1.x<1.0f)+float(UV1.x>1.0f); //optimize this
-float x2 = UV2.x*float(UV1.x>0.0f)*float(UV3.x<1.0f)+float(UV2.x>1.0f);
-float x3 = (UV3.x-1)*float(UV1.x>0.0f)*float(UV3.x<1.0f)+float(UV3.x>1.0f);
-float x4 = UV4.x*float(UV1.x>0.0f)*float(UV4.x<1.0f)+float(UV4.x>1.0f);
-float y1 = (UV1.y-1)*float(UV1.y>0.0f)*float(UV1.y<1.0f)+float(UV1.y>1.0f);
-float y2 = (UV2.y-1)*float(UV2.y>0.0f)*float(UV2.y<1.0f)+float(UV2.y>1.0f);
+float x1 = (UV1.x-1.0f/2000.0f)*float((UV1.x-1.0f/2000.0f)>0.0f)*float((UV1.x-1.0f/2000.0f)<1.0f)+float((UV1.x-1.0f/2000.0f)>1.0f); //optimize this
+float x2 = UV2.x*float(UV2.x>0.0f)*float(UV3.x<1.0f)+float(UV2.x>1.0f);
+float x3 = (UV3.x-1.0f/2000.0f)*float((UV3.x-1.0f/2000.0f)>0.0f)*float((UV3.x-1.0f/2000.0f)<1.0f)+float((UV3.x-1.0f/2000.0f)>1.0f);
+float x4 = UV4.x*float(UV4.x>0.0f)*float(UV4.x<1.0f)+float(UV4.x>1.0f);
+float y1 = (UV1.y-1.0f/2000.0f)*float((UV1.y-1.0f/2000.0f)>0.0f)*float((UV1.y-1.0f/2000.0f)<1.0f)+float((UV1.y-1.0f/2000.0f)>1.0f);
+float y2 = (UV2.y-1.0f/2000.0f)*float((UV2.y-1.0f/2000.0f)>0.0f)*float((UV2.y-1.0f/2000.0f)<1.0f)+float((UV2.y-1.0f/2000.0f)>1.0f);
 float y3 = UV3.y*float(UV3.y>0.0f)*float(UV3.y<1.0f)+float(UV3.y>1.0f);
 float y4 = UV4.y*float(UV4.y>0.0f)*float(UV4.y<1.0f)+float(UV4.y>1.0f);
 
