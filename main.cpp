@@ -20,15 +20,15 @@
 void CreateIntegralImage(unsigned char *InputImage, int width, int height, float **IntegralImage){
     (*IntegralImage) = new float [3*width*height];
     float value = 0;
-    for(int i=width-1; i>-1; --i){
-        value += ((float)InputImage[3*i] ==0);
+    for(int i=0; i<width; ++i){
+        value += ((float)InputImage[3*i+(height-1)*width*3] ==0);
         (*IntegralImage)[3*i+(height-1)*width*3] = value;
         (*IntegralImage)[3*i+1+(height-1)*width*3] = value;
         (*IntegralImage)[3*i+2+(height-1)*width*3] = value;
     }
     value = 0;
     for(int j=height-1; j>-1; --j){
-        value += ((float)InputImage[j*width*3] ==0);
+        value += ((float)InputImage[j*width*3+3*(width-1)] ==0);
         (*IntegralImage)[j*width*3+3*(width-1)] = value;
         (*IntegralImage)[j*width*3+1+3*(width-1)] = value;
         (*IntegralImage)[j*width*3+2+3*(width-1)] = value;
@@ -248,7 +248,7 @@ int main(int argc, char* argv[] ){
     do{ //while window is open
         iterations++;
         // glUseProgram(ShadowMapProgramID); //use shadow map shaders   
-        // glViewport(0,0,2000,2000);    
+        // glViewport(0,0,PuppetWidth,PuppetHeight);    
         // GLint posAttrib_shadow = glGetAttribLocation(ShadowMapProgramID, "position");   //REndTimeer to shadow maps:
         // write_to_shadow_map(framebuffer[3],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[2], uvbuffer[1]); //pass blurred image to depth buffer
  
