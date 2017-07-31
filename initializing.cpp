@@ -17,7 +17,7 @@ void write_to_shadow_map(GLuint framebuffer,GLuint MVPMatrixID, glm::mat4 MVPMat
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     glEnable(GL_DEPTH_TEST); //find depth values
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnableVertexAttribArray(0);
@@ -78,7 +78,22 @@ void initialize_colour_buffer(GLuint framebuffer, GLuint renderedTexture, int wi
     } 
 
 }
+void initialize_float_colour_buffer(GLuint framebuffer, GLuint renderedTexture, int width, int height){
 
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glBindTexture(GL_TEXTURE_2D, renderedTexture); //set up inner shadow map
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0); 
+    
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE){
+        std::cerr << "Error: frame buffer not complete \n" ; //check depth buffer is complete
+    } 
+
+}
 void initialize_texture(GLuint textureID, unsigned char* data, int width, int height){
 
     glBindTexture(GL_TEXTURE_2D, textureID);

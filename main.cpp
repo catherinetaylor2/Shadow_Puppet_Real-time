@@ -66,14 +66,14 @@ int main(int argc, char* argv[] ){
     unsigned char * ScreenTextureData, *PuppetTextureData; 
 	int texture_width, texture_height, PuppetWidth, PuppetHeight;
 	ScreenTextureData = readBMP("Textures/sheet.bmp", &texture_width, &texture_height); //screen texture data
-    PuppetTextureData = readBMP("Textures/octopus_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data
+    PuppetTextureData = readBMP("Textures/dino_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data
 
 
     CreateIntegralImage(PuppetTextureData, PuppetWidth, PuppetHeight, &IntegralImage);
 
     float *VerticesPuppet, *NormalsPuppet, *TexturesPuppet, *VerticesScreen, *NormalsScreen, *TexturesScreen; 
     int NumberOfPuppetFaces, *FaceVerticesPuppet, *FaceNormalsPuppet, *FaceTexturesPuppet, NumberOfPuppetVertices, NumberOfScreenFaces, *FaceVerticesScreen, *FaceNormalsScreen, *FaceTexturesScreen, NumberOfScreenVertices;
-    ObjFile mesh_puppet("Objects/quad2.obj"); //Input mesh of puppet as obj file
+    ObjFile mesh_puppet("Objects/quad.obj"); //Input mesh of puppet as obj file
 	mesh_puppet.get_mesh_data(mesh_puppet, &FaceVerticesPuppet, &FaceNormalsPuppet, &FaceTexturesPuppet, &TexturesPuppet, &NormalsPuppet, &VerticesPuppet, &NumberOfPuppetFaces, &NumberOfPuppetVertices);
     ObjFile mesh_screen("Objects/plane.obj"); //Input plane with lots of triangles
 	mesh_screen.get_mesh_data(mesh_screen, &FaceVerticesScreen, &FaceNormalsScreen, &FaceTexturesScreen, &TexturesScreen, &NormalsScreen, &VerticesScreen, &NumberOfScreenFaces, &NumberOfScreenVertices);
@@ -115,7 +115,7 @@ int main(int argc, char* argv[] ){
 //INITIAL POSITION DATA-----------------------------------------------------------------------------------------
    
 //light data
-    glm::vec3 LightPos = glm::vec3(0.0f,0.0f,50.0f);
+    glm::vec3 LightPos = glm::vec3(0.0f,0.0f,55.0f);
     float LightLength = 1.75f;
     glm::mat4 LightCorners =GetLightCornerMatrix(LightLength, LightPos);
 
@@ -124,7 +124,7 @@ int main(int argc, char* argv[] ){
     glm::mat4 LightCornersOuter =GetLightCornerMatrix(LightLengthOuter, LightPosOuter);
 
     glm::vec3 LightInvDir = glm::vec3(0.0f, 0, -10); //find objects which occlude the light source
-    glm::mat4 depthProjMatrix = glm::ortho<float>(-0.6,0.6,-0.6,0.6,-10,12); //size of dino visible from inner light
+    glm::mat4 depthProjMatrix = glm::ortho<float>(-3,3,-3,3,-10,12); //size of dino visible from inner light
     glm::mat4 depthViewMatrix = glm::lookAt(LightInvDir, glm::vec3(0,0,-1), glm::vec3(0,1,0));
     glm::mat4 depthMVP = depthProjMatrix*depthViewMatrix;
     glm::mat4 depthProjMatrixOuter = glm::ortho<float>(-0.55,0.55,-0.55,0.55,-10,15); //size of dino visible from outer light
@@ -153,27 +153,35 @@ int main(int argc, char* argv[] ){
         1.0f, 1.0f, 
         0.0f, 1.0f,
     };
-    glm::mat4 PuppetCorners = {VerticesPuppet[6],VerticesPuppet[7],VerticesPuppet[8], 0.0f,
-    VerticesPuppet[9],VerticesPuppet[10],VerticesPuppet[11],0.0f,
-    VerticesPuppet[0],VerticesPuppet[1],VerticesPuppet[2], 0.0f,
-    NormalsPuppet[0],NormalsPuppet[1],NormalsPuppet[2],1.0f, //puppet normal
+    // glm::mat4 PuppetCorners = {VerticesPuppet[6],VerticesPuppet[7],VerticesPuppet[8], 0.0f,
+    // VerticesPuppet[9],VerticesPuppet[10],VerticesPuppet[11],0.0f,
+    // VerticesPuppet[0],VerticesPuppet[1],VerticesPuppet[2], 0.0f,
+    // NormalsPuppet[0],NormalsPuppet[1],NormalsPuppet[2],1.0f, //puppet normal
+    // };
+       glm::mat4 PuppetCorners = {-1.087390, 1.087390, 4.771222, 0.0f,
+    1.087390, 1.087390, 4.771222,0.0f,
+    -1.087390, -1.087390, 4.771222, 0.0f,
+    0,0,1,1.0f, //puppet normal
     };
 //-----------------------------------------------------------------------------------------------------------
 //CREATE FRAMEBUFFERS AND TEXTURES: 
 
-    GLuint textureID[2]; //create texture from inputted bitmaps
-    glGenTextures(2, textureID);
+    GLuint textureID[3]; //create texture from inputted bitmaps
+    glGenTextures(3, textureID);
     initialize_texture(textureID[0], ScreenTextureData, texture_width, texture_height);
     initialize_Integral_texture(textureID[1], IntegralImage, PuppetWidth, PuppetHeight);
+    initialize_texture(textureID[2], PuppetTextureData, PuppetWidth, PuppetHeight);
 
-    GLuint framebuffer[3]; //create 3 framebuffers
-    glGenFramebuffers(3, framebuffer);
-    GLuint depthTexture[3]; // generate 3 textures which will be written too
-    glGenTextures(3, depthTexture);
+    GLuint framebuffer[5]; //create 3 framebuffers
+    glGenFramebuffers(5, framebuffer);
+    GLuint depthTexture[5]; // generate 3 textures which will be written too
+    glGenTextures(5, depthTexture);
     
     initialize_colour_buffer(framebuffer[2], depthTexture[2], width, height); //screen texture will be written to this
     initialize_colour_buffer(framebuffer[0], depthTexture[0], width, height);  //outer light buffer (shadow map)
     initialize_colour_buffer(framebuffer[1], depthTexture[1], width, height); //inner light buffer
+    initialize_float_colour_buffer(framebuffer[3], depthTexture[3], PuppetWidth, PuppetHeight);
+    initialize_float_colour_buffer(framebuffer[4], depthTexture[4], PuppetWidth, PuppetHeight);
 //-------------------------------------------------------------------------------------------------------------
 //CREATE VERTEX AND INDEX BUFFERS:
 
@@ -207,12 +215,12 @@ int main(int argc, char* argv[] ){
     glUniform1i(ShadowMapInnerID, 1);
     glUniform1i(ShadowMapOuterID, 2);
 
-    // GLuint ShadowMapProgramID = LoadShaders("Shaders/VertexShader_fb.glsl", "Shaders/FragmentShader_fb.glsl"); //load shaders
-    // GLuint depthMatrixID = glGetUniformLocation(ShadowMapProgramID, "depthMVP"); //load MVP matrix to shader
-    // GLuint rotationMatrixID = glGetUniformLocation(ShadowMapProgramID, "rotation"); //load in rotation matrix
-    // GLuint PuppetTextureID = glGetUniformLocation(ShadowMapProgramID, "puppet_texture");
-    // glUseProgram(ShadowMapProgramID); 
-    // glUniform1i(PuppetTextureID, 0);
+    GLuint ShadowMapProgramID = LoadShaders("Shaders/VertexShader_fb.glsl", "Shaders/FragmentShader_fb.glsl"); //load shaders
+    GLuint depthMatrixID = glGetUniformLocation(ShadowMapProgramID, "depthMVP"); //load MVP matrix to shader
+    GLuint rotationMatrixID = glGetUniformLocation(ShadowMapProgramID, "rotation"); //load in rotation matrix
+    GLuint PuppetTextureID = glGetUniformLocation(ShadowMapProgramID, "puppet_texture");
+    glUseProgram(ShadowMapProgramID); 
+    glUniform1i(PuppetTextureID, 0);
 
     GLuint screenprogramID = LoadShaders("Shaders/VertexShaderScreenTex.glsl", "Shaders/FragmentShaderScreenTex.glsl"); //load shaders
     GLuint screen_LightID = glGetUniformLocation(screenprogramID, "LightPos"); //load light pos
@@ -239,8 +247,21 @@ int main(int argc, char* argv[] ){
 
     do{ //while window is open
         iterations++;
+        // glUseProgram(ShadowMapProgramID); //use shadow map shaders   
+        // glViewport(0,0,2000,2000);    
+        // GLint posAttrib_shadow = glGetAttribLocation(ShadowMapProgramID, "position");   //REndTimeer to shadow maps:
+        // write_to_shadow_map(framebuffer[3],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[2], uvbuffer[1]); //pass blurred image to depth buffer
+ 
+//   unsigned char* img = new unsigned char[3*PuppetWidth*PuppetHeight];
+//     glReadPixels(0, 0, PuppetWidth, PuppetHeight, GL_RGB, GL_UNSIGNED_BYTE, &img[0]);
+//     float* intim;
+//     CreateIntegralImage(img, PuppetWidth,PuppetHeight, &intim);
 
+    
+
+//initialize_Integral_texture(textureID[1], IntegralImage, PuppetWidth, PuppetHeight);
     glUseProgram(BlurringProgramID); //created blurred inside of shadow
+    glViewport(0,0,width, height);
     GLint posAttribb = glGetAttribLocation(BlurringProgramID, "position");
     glUniform1f(heightID, PuppetHeight);
     glUniform1f(widthID, PuppetWidth);
@@ -302,7 +323,8 @@ int main(int argc, char* argv[] ){
         //             0.0f, 0.0f,1.0f, 0.0f,
         //             0.0f, 0.0f, 0.0f,1.0f,};
      
-
+// delete[] img;
+// delete[] intim;
     }while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0); //close if escape pressed
    
     double EndTime = glfwGetTime();
@@ -319,9 +341,9 @@ int main(int argc, char* argv[] ){
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteBuffers(3, vertexbuffer);
     glDeleteBuffers(3, uvbuffer);
-    glDeleteBuffers(3, depthTexture);
-    glDeleteBuffers(2, textureID);
-    glDeleteFramebuffers(3, framebuffer);  
+    glDeleteBuffers(5, depthTexture);
+    glDeleteBuffers(3, textureID);
+    glDeleteFramebuffers(5, framebuffer);  
 
     return 0;
 }
