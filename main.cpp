@@ -66,7 +66,8 @@ int main(int argc, char* argv[] ){
     unsigned char * ScreenTextureData, *PuppetTextureData; 
 	int texture_width, texture_height, PuppetWidth, PuppetHeight;
 	ScreenTextureData = readBMP("Textures/sheet.bmp", &texture_width, &texture_height); //screen texture data
-    PuppetTextureData = readBMP("Textures/dino_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data
+    PuppetTextureData = readBMP("Textures/octopus_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data
+
 
     CreateIntegralImage(PuppetTextureData, PuppetWidth, PuppetHeight, &IntegralImage);
 
@@ -119,7 +120,7 @@ int main(int argc, char* argv[] ){
     glm::mat4 LightCorners =GetLightCornerMatrix(LightLength, LightPos);
 
     glm::vec3 LightPosOuter = glm::vec3(0.0f,0.0f,30.0f);
-    float LightLengthOuter = 0.05f;
+    float LightLengthOuter = 0.1f;
     glm::mat4 LightCornersOuter =GetLightCornerMatrix(LightLengthOuter, LightPosOuter);
 
     glm::vec3 LightInvDir = glm::vec3(0.0f, 0, -10); //find objects which occlude the light source

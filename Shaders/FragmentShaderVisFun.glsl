@@ -35,6 +35,24 @@ int NumberOfPixels(vec2 UV[4], vec2 res){
     int c = a*b;
     return (c);
 }
+float BilinearInterpolation(vec2 UV, sampler2D tex, vec2 res){
+   int Vertex1x,Vertex1y, Vertex2x, Vertex4y;
+   float u = UV.x*res.x;
+   float v = UV.y*res.y;
+    Vertex1x = int(floor(u)); //find corner pixel values
+    Vertex1y = int(ceil(v));
+    Vertex2x = int(ceil(u));
+    Vertex4y = int(floor(v));
+
+    float alpha = float((u - (Vertex2x - Vertex1x)*Vertex1x))/float((Vertex2x - Vertex1x));
+    float beta = float((v - (Vertex1y - Vertex4y)*Vertex4y))/float((Vertex1y - Vertex4y));
+
+    float val12 = (1-alpha)*texture(tex, vec2(Vertex1x/res.x, Vertex1y/res.y)).r + alpha*texture(tex, vec2(Vertex2x/res.x, Vertex1y/res.y)).r;
+    float val34 = (1-alpha)*texture(tex, vec2(Vertex1x/res.x, Vertex4y/res.y)).r + alpha*texture(tex, vec2(Vertex2x/res.x, Vertex4y/res.y)).r;
+    float val = (1-beta)*val12 + beta*val34;
+
+    return val;
+}
 float Visibility(vec2 UV[4], int NumberOfPixels, sampler2D tex, vec2 res){
 
     for(int i=0; i<4; i++){
@@ -45,7 +63,7 @@ float Visibility(vec2 UV[4], int NumberOfPixels, sampler2D tex, vec2 res){
 
     }
 
-    float S = texture(tex, UV[3]).r -texture(tex, UV[1]).r - texture(tex, UV[2]).r +texture(tex, UV[0]).r;
+    float S = BilinearInterpolation(UV[3], tex, res) -BilinearInterpolation(UV[1], tex,res) - BilinearInterpolation(UV[2], tex, res) +BilinearInterpolation(UV[0], tex, res);
     float visfactor = S / float(NumberOfPixels);
     return visfactor;
 }
