@@ -35,9 +35,9 @@ int main(int argc, char* argv[] ){
     float* IntegralImage;
 
     unsigned char * ScreenTextureData, *PuppetTextureData; 
-	int texture_width, texture_height, PuppetWidth, PuppetHeight;
-	ScreenTextureData = readBMP("Textures/sheet.bmp", &texture_width, &texture_height); //screen texture data
-    PuppetTextureData = readBMP("Textures/dino_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data
+	int textureWidth, textureHeight, PuppetWidth, PuppetHeight;
+	ScreenTextureData = readBMP("Textures/sheet.bmp", &textureWidth, &textureHeight); //screen texture data
+    PuppetTextureData = readBMP("Textures/ray_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data
 
 
     CreateIntegralImage(PuppetTextureData, PuppetWidth, PuppetHeight, &IntegralImage);
@@ -86,8 +86,8 @@ int main(int argc, char* argv[] ){
 //INITIAL POSITION DATA-----------------------------------------------------------------------------------------
    
 //light data
-    glm::vec3 LightPos = glm::vec3(0.0f,0.0f,55.0f);
-    float LightLength = 1.75f;
+    glm::vec3 LightPos = glm::vec3(0.0f,0.0f,60.0f);
+    float LightLength = 1.85f;
     glm::mat4 LightCorners =GetLightCornerMatrix(LightLength, LightPos);
 
     glm::vec3 LightPosOuter = glm::vec3(0.0f,0.0f,30.0f);
@@ -139,7 +139,7 @@ int main(int argc, char* argv[] ){
 
     GLuint textureID[3]; //create texture from inputted bitmaps
     glGenTextures(3, textureID);
-    initialize_texture(textureID[0], ScreenTextureData, texture_width, texture_height);
+    initialize_texture(textureID[0], ScreenTextureData, textureWidth, textureHeight);
     initialize_Integral_texture(textureID[1], IntegralImage, PuppetWidth, PuppetHeight);
     initialize_texture(textureID[2], PuppetTextureData, PuppetWidth, PuppetHeight);
 
