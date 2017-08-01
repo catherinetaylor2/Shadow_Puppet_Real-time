@@ -13,5 +13,5 @@ void main() {
   // else{
   //   gl_FragDepth =texture(puppet_texture, UV).x*gl_FragCoord.z;
   // }
-  colour = texture(puppet_texture, UV).rgb;
+  colour = vec3(1,1,1) - texture(puppet_texture, UV).rgb;
 } 
