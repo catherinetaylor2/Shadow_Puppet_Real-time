@@ -6,6 +6,7 @@ in vec2 dimRatio;
 in mat4 LightCornerVertices;
 in vec4 POI;
 in mat4 QuadCorners;
+in vec2 st;
 
 uniform sampler2D renderedTexture; 
 
@@ -63,7 +64,8 @@ float Visibility(vec2 UV[4], int NumberOfPixels, sampler2D tex, vec2 res){
 
     }
 
-    float S = BilinearInterpolation(UV[3], tex, res) -BilinearInterpolation(UV[1], tex,res) - BilinearInterpolation(UV[2], tex, res) +BilinearInterpolation(UV[0], tex, res);
+ // float S = BilinearInterpolation(UV[3], tex, res) -BilinearInterpolation(UV[1], tex,res) - BilinearInterpolation(UV[2], tex, res) +BilinearInterpolation(UV[0], tex, res);
+   float S = texture(tex, UV[3]).r - texture(tex, UV[1]).r -texture(tex, UV[2]).r +texture(tex, UV[0]).r;
     float visfactor = S / float(NumberOfPixels);
     return visfactor;
 }
@@ -81,15 +83,21 @@ void main(){
         IntersectionPoints[i] = FindIntersectionPoint(RayDirection[i], POI.xyz, QuadNormal, QuadCorners[0].xyz);
     }
     float IntersectionZ = 0.25f*(IntersectionPoints[0].z+IntersectionPoints[1].z+IntersectionPoints[2].z+IntersectionPoints[3].z);
-    float dist = 1 - (IntersectionZ - POI.z)/100.0f;
+    
    
 
     vec2 UVcoords[4];
     for(int i=0; i<4;++i){
         UVcoords[i] = getUV(IntersectionPoints[i], QuadCorners[2].xyz, width, height);
     }
+    float dist = abs(texture(renderedTexture, st).w );
     int  i = NumberOfPixels(UVcoords, dimRatio);
     float vis = Visibility( UVcoords,i, renderedTexture, dimRatio);
-    colour = vec3(dist*vis,0,0); //colour depends on distance between light and screen.
+  //  if(dist ==1){
+     //   colour = vec3(0,255,0);
+  //  }
+    //else{
+    colour = vec3(vis,0,0); //colour depends on distance between light and screen.
+    //}
     
 }

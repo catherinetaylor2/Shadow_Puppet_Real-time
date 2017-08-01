@@ -8,8 +8,10 @@ uniform mat4 rotation;
 
 
 out vec2 UV;
+out float Z;
 
 void main(){
     gl_Position = rotation*depthMVP*vec4(vertexPosition_modelspace, 1.0); //make this screen pos?
     UV = UVcoords;
+    Z = vertexPosition_modelspace.z;
 } 
