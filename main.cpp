@@ -183,43 +183,43 @@ int main(int argc, char* argv[] ){
     glUniform1i(ShadowMapOuterID, 2);
     glUniform1i(depthID, 3);
 
-    GLuint ShadowMapProgramID = LoadShaders("Shaders/VertexShader_fb.glsl", "Shaders/FragmentShader_fb.glsl"); //load shaders
-    GLuint depthMatrixID = glGetUniformLocation(ShadowMapProgramID, "depthMVP"); //load MVP matrix to shader
-    GLuint rotationMatrixID = glGetUniformLocation(ShadowMapProgramID, "rotation"); //load in rotation matrix
-    GLuint PuppetTextureID = glGetUniformLocation(ShadowMapProgramID, "puppet_texture");
-    glUseProgram(ShadowMapProgramID); 
+    GLuint SceneProgramID = LoadShaders("Shaders/VertexShader_fb.glsl", "Shaders/FragmentShader_fb.glsl"); //load shaders
+    GLuint depthMatrixID = glGetUniformLocation(SceneProgramID, "depthMVP"); //load MVP matrix to shader
+    GLuint rotationMatrixID = glGetUniformLocation(SceneProgramID, "rotation"); //load in rotation matrix
+    GLuint PuppetTextureID = glGetUniformLocation(SceneProgramID, "puppet_texture");
+    glUseProgram(SceneProgramID); 
     glUniform1i(PuppetTextureID, 0);
 
-    GLuint screenprogramID = LoadShaders("Shaders/VertexShaderScreenTex.glsl", "Shaders/FragmentShaderScreenTex.glsl"); //load shaders
-    GLuint screen_LightID = glGetUniformLocation(screenprogramID, "LightPos"); //load light pos
-    GLuint screenID = glGetUniformLocation(screenprogramID, "screenTexture");
-    glUseProgram(screenprogramID); 
+    GLuint ScreenProgramID = LoadShaders("Shaders/VertexShaderScreenTex.glsl", "Shaders/FragmentShaderScreenTex.glsl"); //load shaders
+    GLuint ScreenLightID = glGetUniformLocation(ScreenProgramID, "LightPos"); //load light pos
+    GLuint screenID = glGetUniformLocation(ScreenProgramID, "screenTexture");
+    glUseProgram(ScreenProgramID); 
     glUniform1i(screenID, 0);
 
-    GLuint BlurringProgramID =  LoadShaders("Shaders/VertexShaderVisFun.glsl", "Shaders/FragmentShaderVisFun.glsl"); //load blurring shader program
-    GLuint widthID = glGetUniformLocation(BlurringProgramID, "textureXres");
-    GLuint heightID = glGetUniformLocation(BlurringProgramID, "textureYres");
-    GLuint CornerID = glGetUniformLocation(BlurringProgramID, "Corners");
-    GLuint PuppetCornerID = glGetUniformLocation(BlurringProgramID, "PuppetCorners");
-    GLuint blurringPuppetTextureID = glGetUniformLocation(BlurringProgramID, "puppet_texture");
-    glUseProgram(BlurringProgramID); 
+    GLuint VisibilityCalculationID =  LoadShaders("Shaders/VertexShaderVisFun.glsl", "Shaders/FragmentShaderVisFun.glsl"); //load blurring shader program
+    GLuint widthID = glGetUniformLocation(VisibilityCalculationID, "textureXres");
+    GLuint heightID = glGetUniformLocation(VisibilityCalculationID, "textureYres");
+    GLuint CornerID = glGetUniformLocation(VisibilityCalculationID, "Corners");
+    GLuint PuppetCornerID = glGetUniformLocation(VisibilityCalculationID, "PuppetCorners");
+    GLuint blurringPuppetTextureID = glGetUniformLocation(VisibilityCalculationID, "puppet_texture");
+    glUseProgram(VisibilityCalculationID); 
     glUniform1i(blurringPuppetTextureID, 0);
 
-    glUseProgram(screenprogramID); //create screen texture with lighting model
-    GLint posAttribs = glGetAttribLocation(screenprogramID, "position");
-    write_to_colour_buffer(framebuffer[2], textureID[0], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribs, NumberOfScreenFaces, screen_LightID, LightPos);
+    glUseProgram(ScreenProgramID); //create screen texture with lighting model
+    GLint posAttribs = glGetAttribLocation(ScreenProgramID, "position");
+    write_to_colour_buffer(framebuffer[2], textureID[0], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribs, NumberOfScreenFaces, ScreenLightID, LightPos);
     
 
     //load frag shaders for integral image calculations:
 
-    GLuint HorPassID = LoadShaders("Shaders/VertexShader.glsl", "Shaders/IntImage.glsl");
+    GLuint IntegralImageID = LoadShaders("Shaders/VertexShader.glsl", "Shaders/IntImage.glsl");
     int n = ceil(log(PuppetWidth)/log(16));
     int m = ceil(log(PuppetHeight)/log(16));
-    GLuint PuppetWidthID = glGetUniformLocation(HorPassID, "textureWidth");
-    GLuint NiID = glGetUniformLocation(HorPassID, "Ni");
-    GLuint VerOrHor = glGetUniformLocation(HorPassID, "VerOrHor");
-    GLuint InttTextureID = glGetUniformLocation(HorPassID, "CurrentTexture");
-    glUseProgram(HorPassID); 
+    GLuint PuppetWidthID = glGetUniformLocation(IntegralImageID, "textureWidth");
+    GLuint NiID = glGetUniformLocation(IntegralImageID, "Ni");
+    GLuint VerOrHor = glGetUniformLocation(IntegralImageID, "VerOrHor");
+    GLuint InttTextureID = glGetUniformLocation(IntegralImageID, "CurrentTexture");
+    glUseProgram(IntegralImageID); 
     glUniform1i(InttTextureID, 0);
 
  
@@ -228,91 +228,62 @@ int main(int argc, char* argv[] ){
 
     do{ //while window is open
         iterations++;
-        glUseProgram(ShadowMapProgramID); //use shadow map shaders   
+        glUseProgram(SceneProgramID); //use shadow map shaders   
         glViewport(0,0,PuppetWidth,PuppetHeight);    
-        GLint posAttrib_shadow = glGetAttribLocation(ShadowMapProgramID, "position");   //REndTimeer to shadow maps:
+        GLint posAttrib_shadow = glGetAttribLocation(SceneProgramID, "position");   //REndTimeer to shadow maps:
         write_to_shadow_map(framebuffer[3],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
         write_to_shadow_map(framebuffer[5],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
 
-
 //------------------------------------------------------------------------------------------------
-
-bool usingA = true;
-
-for(int i=0; i<n; ++i){
-int ni = pow(16.0f, (float)i);
-if(usingA){
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[4]); //write to B
-    glViewport(0,0,PuppetWidth, PuppetHeight);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-    glUseProgram(HorPassID);
-    glUniform1i(PuppetWidthID, PuppetWidth);
-    glUniform1i(NiID, ni);
-    glUniform1i(VerOrHor, 0);
-    glActiveTexture(GL_TEXTURE0); //load in screen texture
-    glBindTexture(GL_TEXTURE_2D, depthTexture[3]);
-}
-else{
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[3]); //write to A
-    glViewport(0,0,PuppetWidth, PuppetHeight);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-    glUseProgram(HorPassID);
-    glUniform1i(PuppetWidthID, PuppetWidth);
-    glUniform1i(NiID, ni);
-    glUniform1i(VerOrHor, 0);
-    glActiveTexture(GL_TEXTURE0); //load in screen texture
-    glBindTexture(GL_TEXTURE_2D, depthTexture[4]);
-}
-    DrawScreenQuad(vertexbuffer[2], uvbuffer[2], HorPassID );
-
-        usingA = !usingA;
-
-}  
-for(int i=0; i<m; ++i){
-    int ni = pow(16.0f, (float)i);
-    if(usingA){
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[4]); //write to B
+        glUseProgram(IntegralImageID);
         glViewport(0,0,PuppetWidth, PuppetHeight);
-        glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-        glUseProgram(HorPassID);
-        glUniform1i(PuppetWidthID, PuppetHeight);
-        glUniform1i(NiID, ni);
-        glUniform1i(VerOrHor, 1);
-        glActiveTexture(GL_TEXTURE0); //load in screen texture
-        glBindTexture(GL_TEXTURE_2D, depthTexture[3]);
-    }
-    else{
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[3]); //write to A
-        glViewport(0,0,PuppetWidth, PuppetHeight);
-        glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-        glUseProgram(HorPassID);
-        glUniform1i(PuppetWidthID, PuppetHeight);
-        glUniform1i(NiID, ni);
-        glUniform1i(VerOrHor, 1);
-        glActiveTexture(GL_TEXTURE0); //load in screen texture
-        glBindTexture(GL_TEXTURE_2D, depthTexture[4]);
-    }
-        DrawScreenQuad(vertexbuffer[2], uvbuffer[2], HorPassID );
-
-
-        
+        bool usingA = true;
+        glUniform1i(PuppetWidthID, PuppetWidth);
+        for(int i=0; i<n; ++i){
+            int ni = pow(16.0f, (float)i);
+            glUniform1i(VerOrHor, 0);
+            glUniform1i(NiID, ni);
+            if(usingA){
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[4]); //write to B   
+                glBindTexture(GL_TEXTURE_2D, depthTexture[3]);
+            }
+            else{
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[3]); //write to A
+                glUniform1i(NiID, ni);
+                glBindTexture(GL_TEXTURE_2D, depthTexture[4]);
+            }
+            DrawScreenQuad(vertexbuffer[2], uvbuffer[2], IntegralImageID );
             usingA = !usingA;
-
-}  
-
+        }  
+        glUniform1i(PuppetWidthID, PuppetHeight);
+        for(int i=0; i<m; ++i){
+            int ni = pow(16.0f, (float)i);
+            glUniform1i(VerOrHor, 1);
+            glUniform1i(NiID, ni);
+            if(usingA){
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[4]); //write to B
+                glBindTexture(GL_TEXTURE_2D, depthTexture[3]);
+            }
+            else{
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[3]); //write to A
+                glBindTexture(GL_TEXTURE_2D, depthTexture[4]);
+            }
+            DrawScreenQuad(vertexbuffer[2], uvbuffer[2], IntegralImageID );        
+            usingA = !usingA;
+        }  
   //--------------------------------------------------------------------------------------------------  
 
 
-        glUseProgram(BlurringProgramID); //created blurred inside of shadow
+        glUseProgram(VisibilityCalculationID); //created blurred inside of shadow
         glViewport(0,0,width, height);
-        GLint posAttribb = glGetAttribLocation(BlurringProgramID, "position");
+        GLint posAttribb = glGetAttribLocation(VisibilityCalculationID, "position");
         glUniform1f(heightID, PuppetHeight);
         glUniform1f(widthID, PuppetWidth);
         glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCorners[0][0]);
         glUniformMatrix4fv(PuppetCornerID, 1, GL_FALSE, &PuppetCorners[0][0]);
-        write_to_colour_buffer(framebuffer[1], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, screen_LightID, LightPos);
+        write_to_colour_buffer(framebuffer[1], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, ScreenLightID, LightPos);
         glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCornersOuter[0][0]);
-        write_to_colour_buffer(framebuffer[0], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, screen_LightID, LightPos);
+        write_to_colour_buffer(framebuffer[0], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, ScreenLightID, LightPos);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); //bind to default frame buffer
         glViewport(0,0,width,height); //fill whole screen
@@ -360,9 +331,9 @@ for(int i=0; i<m; ++i){
     glDeleteBuffers(2, textureID);
     glDeleteFramebuffers(6, framebuffer);  
     glDeleteProgram(programID);
-    glDeleteProgram(HorPassID);
-    glDeleteProgram(ShadowMapProgramID);
-    glDeleteProgram(screenprogramID);
+    glDeleteProgram(IntegralImageID);
+    glDeleteProgram(SceneProgramID);
+    glDeleteProgram(ScreenProgramID);
 
     return 0;
 }
