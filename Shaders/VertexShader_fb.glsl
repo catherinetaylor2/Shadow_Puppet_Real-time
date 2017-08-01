@@ -6,12 +6,11 @@ layout(location = 1) in vec2 UVcoords;
 uniform mat4 depthMVP; 
 uniform mat4 rotation;
 
-
 out vec2 UV;
 out float Z;
 
 void main(){
-    gl_Position = rotation*depthMVP*vec4(vertexPosition_modelspace, 1.0); //make this screen pos?
+    gl_Position = rotation*depthMVP*vec4(vertexPosition_modelspace, 1.0);
     UV = UVcoords;
     Z = vertexPosition_modelspace.z;
 } 

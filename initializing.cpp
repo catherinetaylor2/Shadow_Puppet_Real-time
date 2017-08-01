@@ -45,23 +45,6 @@ void write_to_shadow_map(GLuint framebuffer,GLuint MVPMatrixID, glm::mat4 MVPMat
     glDisableVertexAttribArray(0);
 }
 
-void initialize_depth_buffer(GLuint framebuffer, GLuint renderedTexture, int width, int height){
-
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glBindTexture(GL_TEXTURE_2D, renderedTexture); //set up inner shadow map
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, renderedTexture, 0);  
-    glDrawBuffer(GL_NONE);
-
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE){
-        std::cerr << "Error: frame buffer not complete \n" ; //check depth buffer is complete
-    }       
-}
-
 void initialize_colour_buffer(GLuint framebuffer, GLuint renderedTexture, int width, int height, int i, bool isFloat){
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -90,19 +73,12 @@ void initialize_colour_buffer(GLuint framebuffer, GLuint renderedTexture, int wi
 }
 
 void initialize_texture(GLuint textureID, unsigned char* data, int width, int height){
-
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
-void initialize_Integral_texture(GLuint textureID,float* data, int width, int height){
 
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, data);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-}
 void initialize_array_buffer(GLuint array_buffer, float size, float data []){
     glBindBuffer(GL_ARRAY_BUFFER, array_buffer); //buffer containing screen mesh
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);

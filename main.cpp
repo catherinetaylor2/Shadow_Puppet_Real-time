@@ -97,7 +97,6 @@ int main(int argc, char* argv[] ){
     glm::mat4 depthViewMatrix = glm::lookAt(LightInvDir, glm::vec3(0,0,1), glm::vec3(0,1,0));
     glm::mat4 depthMVP = depthProjMatrix*depthViewMatrix;
 
-
     float RotAngle = 0.0f; //set up initial rotation matrix
     glm::mat4 rotation = {  cos(RotAngle), sin(RotAngle), 0.0f, 0.0f,
                             - sin(RotAngle), cos(RotAngle),0.0f, 0.0f,
@@ -122,10 +121,10 @@ int main(int argc, char* argv[] ){
         0.0f, 1.0f,
     };
   
-       glm::mat4 PuppetCorners = {-1.1, 1.1, 4.771222, 0.0f,
-    1.1, 1.1, 4.771222,0.0f,
-    -1.1, -1.1, 4.771222, 0.0f,
-    0,0,1,1.0f, //puppet normal
+    glm::mat4 PuppetCorners = {-1.1, 1.1, 4.771222, 0.0f,
+            1.1, 1.1, 4.771222,0.0f,
+            -1.1, -1.1, 4.771222, 0.0f,
+            0,0,1,1.0f, //puppet normal
     };
 //-----------------------------------------------------------------------------------------------------------
 //CREATE FRAMEBUFFERS AND TEXTURES: 
@@ -147,7 +146,6 @@ int main(int argc, char* argv[] ){
     initialize_colour_buffer(framebuffer[4], depthTexture[4], PuppetWidth, PuppetHeight,0, true);
     initialize_colour_buffer(framebuffer[5],depthTexture[5], PuppetWidth, PuppetHeight, 1, false);
  
-    
 //-------------------------------------------------------------------------------------------------------------
 //CREATE VERTEX AND INDEX BUFFERS:
 
@@ -209,9 +207,6 @@ int main(int argc, char* argv[] ){
     GLint posAttribs = glGetAttribLocation(ScreenProgramID, "position");
     write_to_colour_buffer(framebuffer[2], textureID[0], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribs, NumberOfScreenFaces, ScreenLightID, LightPos);
     
-
-    //load frag shaders for integral image calculations:
-
     GLuint IntegralImageID = LoadShaders("Shaders/VertexShader.glsl", "Shaders/IntImage.glsl");
     int n = ceil(log(PuppetWidth)/log(16));
     int m = ceil(log(PuppetHeight)/log(16));
@@ -222,7 +217,6 @@ int main(int argc, char* argv[] ){
     glUseProgram(IntegralImageID); 
     glUniform1i(InttTextureID, 0);
 
- 
     int  iterations = 0; //number of iterations
     double StartTime = glfwGetTime(); //Start timer
 
@@ -273,17 +267,16 @@ int main(int argc, char* argv[] ){
         }  
   //--------------------------------------------------------------------------------------------------  
 
-
         glUseProgram(VisibilityCalculationID); //created blurred inside of shadow
         glViewport(0,0,width, height);
-        GLint posAttribb = glGetAttribLocation(VisibilityCalculationID, "position");
+        GLint posAttribVis = glGetAttribLocation(VisibilityCalculationID, "position");
         glUniform1f(heightID, PuppetHeight);
         glUniform1f(widthID, PuppetWidth);
         glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCorners[0][0]);
         glUniformMatrix4fv(PuppetCornerID, 1, GL_FALSE, &PuppetCorners[0][0]);
-        write_to_colour_buffer(framebuffer[1], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, ScreenLightID, LightPos);
+        write_to_colour_buffer(framebuffer[1], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribVis, NumberOfScreenFaces, ScreenLightID, LightPos);
         glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCornersOuter[0][0]);
-        write_to_colour_buffer(framebuffer[0], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, ScreenLightID, LightPos);
+        write_to_colour_buffer(framebuffer[0], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribVis, NumberOfScreenFaces, ScreenLightID, LightPos);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); //bind to default frame buffer
         glViewport(0,0,width,height); //fill whole screen
@@ -301,7 +294,6 @@ int main(int argc, char* argv[] ){
 
         DrawScreenQuad(vertexbuffer[2], uvbuffer[2], programID );
  
-
         glfwSwapBuffers(window);
         glfwPollEvents();
 
@@ -310,7 +302,6 @@ int main(int argc, char* argv[] ){
         //             - sin(RotAngle), cos(RotAngle),0.0f, 0.0f,
         //             0.0f, 0.0f,1.0f, 0.0f,
         //             0.0f, 0.0f, 0.0f,1.0f,};
-     
 
     }while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0); //close if escape pressed
    
