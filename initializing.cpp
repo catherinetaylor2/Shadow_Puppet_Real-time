@@ -17,7 +17,7 @@ void write_to_shadow_map(GLuint framebuffer,GLuint MVPMatrixID, glm::mat4 MVPMat
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     glEnable(GL_DEPTH_TEST); //find depth values
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnableVertexAttribArray(0);

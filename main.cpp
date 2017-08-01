@@ -212,16 +212,40 @@ int main(int argc, char* argv[] ){
     GLint posAttribs = glGetAttribLocation(screenprogramID, "position");
     write_to_colour_buffer(framebuffer[2], textureID[0], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribs, NumberOfScreenFaces, screen_LightID, LightPos);
     
+
+    //load frag shaders for integral image calculations:
+
+    GLuint HorPassID = LoadShaders("Shaders/VertexShader.glsl", "Shaders/IntImageHor.glsl");
+    int n = ceil(log(PuppetWidth)/log(16));
+    GLuint PuppetWidthID = glGetUniformLocation(HorPassID, "textureWidth");
+    GLuint NiID = glGetUniformLocation(HorPassID, "Ni");
+    GLuint InttTextureID = glGetUniformLocation(HorPassID, "CurrentTexture");
+    glUseProgram(HorPassID); 
+    glUniform1i(InttTextureID, 0);
+
+     GLuint VerPassID = LoadShaders("Shaders/VertexShader.glsl", "Shaders/IntImageVer.glsl");
+    int m = ceil(log(PuppetHeight)/log(16));
+    GLuint PuppetHeightID = glGetUniformLocation(VerPassID, "textureHeight");
+    GLuint MiID = glGetUniformLocation(VerPassID, "Mi");
+    GLuint InttTextureIDv = glGetUniformLocation(VerPassID, "CurrentTexture");
+    glUseProgram(VerPassID); 
+    glUniform1i(InttTextureIDv, 0);
+
+	// Check Fragment Shader
+
+
+
+
  
     int  iterations = 0; //number of iterations
     double StartTime = glfwGetTime(); //Start timer
 
     do{ //while window is open
         iterations++;
-        // glUseProgram(ShadowMapProgramID); //use shadow map shaders   
-        // glViewport(0,0,PuppetWidth,PuppetHeight);    
-        // GLint posAttrib_shadow = glGetAttribLocation(ShadowMapProgramID, "position");   //REndTimeer to shadow maps:
-        // write_to_shadow_map(framebuffer[3],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[2], uvbuffer[1]); //pass blurred image to depth buffer
+        glUseProgram(ShadowMapProgramID); //use shadow map shaders   
+        glViewport(0,0,PuppetWidth,PuppetHeight);    
+        GLint posAttrib_shadow = glGetAttribLocation(ShadowMapProgramID, "position");   //REndTimeer to shadow maps:
+        write_to_shadow_map(framebuffer[3],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[2], uvbuffer[1]); //pass blurred image to depth buffer
  
 //   unsigned char* img = new unsigned char[3*PuppetWidth*PuppetHeight];
 //     glReadPixels(0, 0, PuppetWidth, PuppetHeight, GL_RGB, GL_UNSIGNED_BYTE, &img[0]);
@@ -230,19 +254,130 @@ int main(int argc, char* argv[] ){
 
     
 
-//initialize_Integral_texture(textureID[1], IntegralImage, PuppetWidth, PuppetHeight);
-    glUseProgram(BlurringProgramID); //created blurred inside of shadow
+// initialize_Integral_texture(textureID[1], intim, PuppetWidth, PuppetHeight);
+
+   
+
+//------------------------------------------------------------------------------------------------
+int ni = 1;
+bool usingA = true;
+
+for(int i=0; i<n; ++i){
+ni = pow(16.0f, (float)i);
+if(usingA){
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[4]); //write to B
+    glViewport(0,0,PuppetWidth, PuppetHeight);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+    glUseProgram(HorPassID);
+    glUniform1i(PuppetWidthID, PuppetWidth);
+    glUniform1i(NiID, ni);
+    glActiveTexture(GL_TEXTURE0); //load in screen texture
+    glBindTexture(GL_TEXTURE_2D, depthTexture[3]);
+}
+else{
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[3]); //write to A
+    glViewport(0,0,PuppetWidth, PuppetHeight);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+    glUseProgram(HorPassID);
+    glUniform1i(PuppetWidthID, PuppetWidth);
+    glUniform1i(NiID, ni);
+    glActiveTexture(GL_TEXTURE0); //load in screen texture
+    glBindTexture(GL_TEXTURE_2D, depthTexture[4]);
+}
+    glEnableVertexAttribArray(0); //draw quad with textures mapped on.
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer[2]);
+    int posAttribh = glGetAttribLocation(HorPassID, "position");
+    glEnableVertexAttribArray(posAttribh);
+    glVertexAttribPointer(
+            0,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            0,  
+            (void*)0
+        );
+        glEnableVertexAttribArray(1); //use UV coords
+        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer[2]);
+        glVertexAttribPointer(
+            1,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            0,  
+            (void*)0
+        );
+        glDrawArrays(GL_TRIANGLES,0,6);
+        glDisableVertexAttribArray(0);
+
+    
+        usingA = !usingA;
+
+}  
+for(int i=0; i<m; ++i){
+ni = pow(16.0f, (float)i);
+if(usingA){
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[4]); //write to B
+    glViewport(0,0,PuppetWidth, PuppetHeight);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+    glUseProgram(VerPassID);
+    glUniform1i(PuppetHeightID, PuppetHeight);
+    glUniform1i(MiID, ni);
+    glActiveTexture(GL_TEXTURE0); //load in screen texture
+    glBindTexture(GL_TEXTURE_2D, depthTexture[3]);
+}
+else{
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[3]); //write to A
+    glViewport(0,0,PuppetWidth, PuppetHeight);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+    glUseProgram(VerPassID);
+    glUniform1i(PuppetHeightID, PuppetHeight);
+    glUniform1i(MiID, ni);
+    glActiveTexture(GL_TEXTURE0); //load in screen texture
+    glBindTexture(GL_TEXTURE_2D, depthTexture[4]);
+}
+    glEnableVertexAttribArray(0); //draw quad with textures mapped on.
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer[2]);
+    int posAttribv = glGetAttribLocation(VerPassID, "position");
+    glEnableVertexAttribArray(posAttribv);
+    glVertexAttribPointer(
+            0,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            0,  
+            (void*)0
+        );
+        glEnableVertexAttribArray(1); //use UV coords
+        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer[2]);
+        glVertexAttribPointer(
+            1,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            0,  
+            (void*)0
+        );
+        glDrawArrays(GL_TRIANGLES,0,6);
+        glDisableVertexAttribArray(0);
+
+    
+        usingA = !usingA;
+
+}  
+
+  //--------------------------------------------------------------------------------------------------  
+
+
+   glUseProgram(BlurringProgramID); //created blurred inside of shadow
     glViewport(0,0,width, height);
     GLint posAttribb = glGetAttribLocation(BlurringProgramID, "position");
     glUniform1f(heightID, PuppetHeight);
     glUniform1f(widthID, PuppetWidth);
     glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCorners[0][0]);
     glUniformMatrix4fv(PuppetCornerID, 1, GL_FALSE, &PuppetCorners[0][0]);
-    write_to_colour_buffer(framebuffer[1], textureID[1], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, screen_LightID, LightPos);
+    write_to_colour_buffer(framebuffer[1], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, screen_LightID, LightPos);
     glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCornersOuter[0][0]);
-    write_to_colour_buffer(framebuffer[0], textureID[1], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, screen_LightID, LightPos);
-
-      
+    write_to_colour_buffer(framebuffer[0], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, screen_LightID, LightPos);
     //     glUseProgram(ShadowMapProgramID); //use shadow map shaders       
     //     GLint posAttrib_shadow = glGetAttribLocation(ShadowMapProgramID, "position");   //REndTimeer to shadow maps:
     //    write_to_shadow_map(framebuffer[1],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
@@ -294,8 +429,7 @@ int main(int argc, char* argv[] ){
         //             0.0f, 0.0f,1.0f, 0.0f,
         //             0.0f, 0.0f, 0.0f,1.0f,};
      
-// delete[] img;
-// delete[] intim;
+
     }while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0); //close if escape pressed
    
     double EndTime = glfwGetTime();
