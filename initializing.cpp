@@ -154,36 +154,6 @@ glm::mat4 GetLightCornerMatrix(float LightLength, glm::vec3 LightPos){
                             LightPos.x + LightLength/2.0f, LightPos.y - LightLength/2.0f, LightPos.z, 0};
     return LightCorners;
 }
-void CreateIntegralImage(unsigned char *InputImage, int width, int height, float **IntegralImage){
-    (*IntegralImage) = new float [3*width*height];
-    float value = 0;
-    for(int i=0; i<width; ++i){
-        value += ((float)InputImage[3*i+(height-1)*width*3] ==0);
-        (*IntegralImage)[3*i+(height-1)*width*3] = value;
-        (*IntegralImage)[3*i+1+(height-1)*width*3] = value;
-        (*IntegralImage)[3*i+2+(height-1)*width*3] = value;
-    }
-    value = 0;
-    for(int j=height-1; j>-1; --j){
-        value += ((float)InputImage[j*width*3] ==0);
-        (*IntegralImage)[j*width*3] = value;
-        (*IntegralImage)[j*width*3+1] = value;
-        (*IntegralImage)[j*width*3+2] = value;
-    }
-
-    
-    for(int j = height-2; j>0; --j){
-        value = 0.0f;
-        for(int i=1; i<width; ++i){
-            float temp = (float)(*IntegralImage)[(j+1)*width*3 + 3*i];
-           
-            value = ((float)InputImage[j*width*3+3*i] ==0) + (float)(*IntegralImage)[(j)*width*3 + 3*(i-1)] + temp -  (float)(*IntegralImage)[(j+1)*width*3 + 3*(i-1)];
-            (*IntegralImage)[j*width*3+3*i] = value;
-            (*IntegralImage)[j*width*3+3*i+1] = 0;// value;
-            (*IntegralImage)[j*width*3+3*i+2] =  0;//value;
-        }
-    }
-}
 
 void DrawScreenQuad(GLuint vertexbuffer, GLuint uvbuffer, GLuint programID ){
     glEnableVertexAttribArray(0); //draw quad with textures mapped on.

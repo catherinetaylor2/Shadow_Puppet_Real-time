@@ -17,8 +17,6 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
 
-
-
 int main(int argc, char* argv[] ){
 
     int width, height;
@@ -32,15 +30,10 @@ int main(int argc, char* argv[] ){
 	}
     float widthRatio = 1.0f/(float)width, heightRatio = 1.0f/(float)height; //used in blurring calculations
 
-    float* IntegralImage;
-
     unsigned char * ScreenTextureData, *PuppetTextureData; 
 	int textureWidth, textureHeight, PuppetWidth, PuppetHeight;
 	ScreenTextureData = readBMP("Textures/sheet.bmp", &textureWidth, &textureHeight); //screen texture data
-    PuppetTextureData = readBMP("Textures/dino_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data
-
-
-    CreateIntegralImage(PuppetTextureData, PuppetWidth, PuppetHeight, &IntegralImage);
+    PuppetTextureData = readBMP("Textures/dino_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data  
 
     float *VerticesPuppet, *NormalsPuppet, *TexturesPuppet, *VerticesScreen, *NormalsScreen, *TexturesScreen; 
     int NumberOfPuppetFaces, *FaceVerticesPuppet, *FaceNormalsPuppet, *FaceTexturesPuppet, NumberOfPuppetVertices, NumberOfScreenFaces, *FaceVerticesScreen, *FaceNormalsScreen, *FaceTexturesScreen, NumberOfScreenVertices;
@@ -101,11 +94,9 @@ int main(int argc, char* argv[] ){
         0.1f,        // Near clipping plane. 
         50.0f       // Far clipping plane.
     );
-  //  glm::mat4 depthProjMatrix = glm::ortho<float>(-3,3,-3,3,-10,12); //size of dino visible from inner light
     glm::mat4 depthViewMatrix = glm::lookAt(LightInvDir, glm::vec3(0,0,1), glm::vec3(0,1,0));
     glm::mat4 depthMVP = depthProjMatrix*depthViewMatrix;
-    glm::mat4 depthProjMatrixOuter = glm::ortho<float>(-0.55,0.55,-0.55,0.55,-10,15); //size of dino visible from outer light
-    glm::mat4 depthMVPOuter = depthProjMatrixOuter*depthViewMatrix;
+
 
     float RotAngle = 0.0f; //set up initial rotation matrix
     glm::mat4 rotation = {  cos(RotAngle), sin(RotAngle), 0.0f, 0.0f,
@@ -139,11 +130,10 @@ int main(int argc, char* argv[] ){
 //-----------------------------------------------------------------------------------------------------------
 //CREATE FRAMEBUFFERS AND TEXTURES: 
 
-    GLuint textureID[3]; //create texture from inputted bitmaps
-    glGenTextures(3, textureID);
+    GLuint textureID[2]; //create texture from inputted bitmaps
+    glGenTextures(2, textureID);
     initialize_texture(textureID[0], ScreenTextureData, textureWidth, textureHeight);
-    initialize_Integral_texture(textureID[1], IntegralImage, PuppetWidth, PuppetHeight);
-    initialize_texture(textureID[2], PuppetTextureData, PuppetWidth, PuppetHeight);
+    initialize_texture(textureID[1], PuppetTextureData, PuppetWidth, PuppetHeight);
 
     GLuint framebuffer[6]; //create 3 framebuffers
     glGenFramebuffers(6, framebuffer);
@@ -241,8 +231,8 @@ int main(int argc, char* argv[] ){
         glUseProgram(ShadowMapProgramID); //use shadow map shaders   
         glViewport(0,0,PuppetWidth,PuppetHeight);    
         GLint posAttrib_shadow = glGetAttribLocation(ShadowMapProgramID, "position");   //REndTimeer to shadow maps:
-        write_to_shadow_map(framebuffer[3],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[2], uvbuffer[1]); //pass blurred image to depth buffer
-        write_to_shadow_map(framebuffer[5],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[2], uvbuffer[1]); //pass blurred image to depth buffer
+        write_to_shadow_map(framebuffer[3],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
+        write_to_shadow_map(framebuffer[5],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
 
 
 //------------------------------------------------------------------------------------------------
@@ -313,20 +303,16 @@ for(int i=0; i<m; ++i){
   //--------------------------------------------------------------------------------------------------  
 
 
-   glUseProgram(BlurringProgramID); //created blurred inside of shadow
-    glViewport(0,0,width, height);
-    GLint posAttribb = glGetAttribLocation(BlurringProgramID, "position");
-    glUniform1f(heightID, PuppetHeight);
-    glUniform1f(widthID, PuppetWidth);
-    glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCorners[0][0]);
-    glUniformMatrix4fv(PuppetCornerID, 1, GL_FALSE, &PuppetCorners[0][0]);
-    write_to_colour_buffer(framebuffer[1], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, screen_LightID, LightPos);
-    glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCornersOuter[0][0]);
-    write_to_colour_buffer(framebuffer[0], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, screen_LightID, LightPos);
-    //     glUseProgram(ShadowMapProgramID); //use shadow map shaders       
-    //     GLint posAttrib_shadow = glGetAttribLocation(ShadowMapProgramID, "position");   //REndTimeer to shadow maps:
-    //    write_to_shadow_map(framebuffer[1],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
-    //    write_to_shadow_map(framebuffer[0],depthMatrixID, depthMVPOuter, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID,rotation, textureID[1], uvbuffer[1]);
+        glUseProgram(BlurringProgramID); //created blurred inside of shadow
+        glViewport(0,0,width, height);
+        GLint posAttribb = glGetAttribLocation(BlurringProgramID, "position");
+        glUniform1f(heightID, PuppetHeight);
+        glUniform1f(widthID, PuppetWidth);
+        glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCorners[0][0]);
+        glUniformMatrix4fv(PuppetCornerID, 1, GL_FALSE, &PuppetCorners[0][0]);
+        write_to_colour_buffer(framebuffer[1], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, screen_LightID, LightPos);
+        glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCornersOuter[0][0]);
+        write_to_colour_buffer(framebuffer[0], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribb, NumberOfScreenFaces, screen_LightID, LightPos);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); //bind to default frame buffer
         glViewport(0,0,width,height); //fill whole screen
@@ -365,15 +351,18 @@ for(int i=0; i<m; ++i){
 //clear up and delete buffers
     delete[] ScreenTextureData;
     delete[] PuppetTextureData;
-    delete[] IntegralImage;
     ObjFile::clean_up(VerticesPuppet,NormalsPuppet, TexturesPuppet, FaceVerticesPuppet, FaceNormalsPuppet, FaceTexturesPuppet);
     ObjFile::clean_up(VerticesScreen,NormalsScreen, TexturesScreen, FaceVerticesScreen, FaceNormalsScreen, FaceTexturesScreen);
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteBuffers(3, vertexbuffer);
     glDeleteBuffers(3, uvbuffer);
-    glDeleteBuffers(5, depthTexture);
-    glDeleteBuffers(3, textureID);
-    glDeleteFramebuffers(5, framebuffer);  
+    glDeleteBuffers(6, depthTexture);
+    glDeleteBuffers(2, textureID);
+    glDeleteFramebuffers(6, framebuffer);  
+    glDeleteProgram(programID);
+    glDeleteProgram(HorPassID);
+    glDeleteProgram(ShadowMapProgramID);
+    glDeleteProgram(screenprogramID);
 
     return 0;
 }

@@ -15,7 +15,6 @@ void initialize_array_buffer(GLuint arrayBuffer, float size, float data []);
 void initialize_element_array_buffer(GLuint arrayBuffer, int size, int data []);
 void write_to_colour_buffer(GLuint framebuffer, GLuint textureID, GLuint vertexbuffer, GLuint indexbuffer, GLuint uvbuffer, GLint posAttrib, int numberOfFaces, GLuint LightID, glm::vec3 LightPos);
 glm::mat4 GetLightCornerMatrix(float LightLength, glm::vec3 LightCentre);
-void CreateIntegralImage(unsigned char *InputImage, int width, int height, float **IntegralImage);
 void DrawScreenQuad(GLuint vertexbuffer, GLuint uvbuffer, GLuint programID );
 
 #endif

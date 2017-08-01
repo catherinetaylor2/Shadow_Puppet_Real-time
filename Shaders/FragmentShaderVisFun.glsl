@@ -82,22 +82,14 @@ void main(){
         RayDirection[i] = normalize((LightCornerVertices[i] - POI).xyz);
         IntersectionPoints[i] = FindIntersectionPoint(RayDirection[i], POI.xyz, QuadNormal, QuadCorners[0].xyz);
     }
-    float IntersectionZ = 0.25f*(IntersectionPoints[0].z+IntersectionPoints[1].z+IntersectionPoints[2].z+IntersectionPoints[3].z);
     
-   
-
     vec2 UVcoords[4];
     for(int i=0; i<4;++i){
         UVcoords[i] = getUV(IntersectionPoints[i], QuadCorners[2].xyz, width, height);
     }
-    float dist = abs(texture(renderedTexture, st).w );
+
     int  i = NumberOfPixels(UVcoords, dimRatio);
     float vis = Visibility( UVcoords,i, renderedTexture, dimRatio);
-  //  if(dist ==1){
-     //   colour = vec3(0,255,0);
-  //  }
-    //else{
     colour = vec3(vis,0,0); //colour depends on distance between light and screen.
-    //}
-    
+        
 }
