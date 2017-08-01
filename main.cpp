@@ -87,7 +87,7 @@ int main(int argc, char* argv[] ){
    
 //light data
     glm::vec3 LightPos = glm::vec3(0.0f,0.0f,60.0f);
-    float LightLength = 1.85f;
+    float LightLength = 1.5f;
     glm::mat4 LightCorners =GetLightCornerMatrix(LightLength, LightPos);
 
     glm::vec3 LightPosOuter = glm::vec3(0.0f,0.0f,30.0f);
@@ -129,9 +129,9 @@ int main(int argc, char* argv[] ){
     // VerticesPuppet[0],VerticesPuppet[1],VerticesPuppet[2], 0.0f,
     // NormalsPuppet[0],NormalsPuppet[1],NormalsPuppet[2],1.0f, //puppet normal
     // };
-       glm::mat4 PuppetCorners = {-1.087390, 1.087390, 4.771222, 0.0f,
-    1.087390, 1.087390, 4.771222,0.0f,
-    -1.087390, -1.087390, 4.771222, 0.0f,
+       glm::mat4 PuppetCorners = {-1.1, 1.1, 4.771222, 0.0f,
+    1.1, 1.1, 4.771222,0.0f,
+    -1.1, -1.1, 4.771222, 0.0f,
     0,0,1,1.0f, //puppet normal
     };
 //-----------------------------------------------------------------------------------------------------------
@@ -246,24 +246,14 @@ int main(int argc, char* argv[] ){
         glViewport(0,0,PuppetWidth,PuppetHeight);    
         GLint posAttrib_shadow = glGetAttribLocation(ShadowMapProgramID, "position");   //REndTimeer to shadow maps:
         write_to_shadow_map(framebuffer[3],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[2], uvbuffer[1]); //pass blurred image to depth buffer
- 
-//   unsigned char* img = new unsigned char[3*PuppetWidth*PuppetHeight];
-//     glReadPixels(0, 0, PuppetWidth, PuppetHeight, GL_RGB, GL_UNSIGNED_BYTE, &img[0]);
-//     float* intim;
-//     CreateIntegralImage(img, PuppetWidth,PuppetHeight, &intim);
-
-    
-
-// initialize_Integral_texture(textureID[1], intim, PuppetWidth, PuppetHeight);
-
-   
+  
 
 //------------------------------------------------------------------------------------------------
-int ni = 1;
+
 bool usingA = true;
 
 for(int i=0; i<n; ++i){
-ni = pow(16.0f, (float)i);
+int ni = pow(16.0f, (float)i);
 if(usingA){
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[4]); //write to B
     glViewport(0,0,PuppetWidth, PuppetHeight);
@@ -284,84 +274,38 @@ else{
     glActiveTexture(GL_TEXTURE0); //load in screen texture
     glBindTexture(GL_TEXTURE_2D, depthTexture[4]);
 }
-    glEnableVertexAttribArray(0); //draw quad with textures mapped on.
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer[2]);
-    int posAttribh = glGetAttribLocation(HorPassID, "position");
-    glEnableVertexAttribArray(posAttribh);
-    glVertexAttribPointer(
-            0,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            0,  
-            (void*)0
-        );
-        glEnableVertexAttribArray(1); //use UV coords
-        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer[2]);
-        glVertexAttribPointer(
-            1,
-            2,
-            GL_FLOAT,
-            GL_FALSE,
-            0,  
-            (void*)0
-        );
-        glDrawArrays(GL_TRIANGLES,0,6);
-        glDisableVertexAttribArray(0);
+    DrawScreenQuad(vertexbuffer[2], uvbuffer[2], HorPassID );
 
-    
         usingA = !usingA;
 
 }  
 for(int i=0; i<m; ++i){
-ni = pow(16.0f, (float)i);
-if(usingA){
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[4]); //write to B
-    glViewport(0,0,PuppetWidth, PuppetHeight);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-    glUseProgram(VerPassID);
-    glUniform1i(PuppetHeightID, PuppetHeight);
-    glUniform1i(MiID, ni);
-    glActiveTexture(GL_TEXTURE0); //load in screen texture
-    glBindTexture(GL_TEXTURE_2D, depthTexture[3]);
-}
-else{
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[3]); //write to A
-    glViewport(0,0,PuppetWidth, PuppetHeight);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-    glUseProgram(VerPassID);
-    glUniform1i(PuppetHeightID, PuppetHeight);
-    glUniform1i(MiID, ni);
-    glActiveTexture(GL_TEXTURE0); //load in screen texture
-    glBindTexture(GL_TEXTURE_2D, depthTexture[4]);
-}
-    glEnableVertexAttribArray(0); //draw quad with textures mapped on.
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer[2]);
-    int posAttribv = glGetAttribLocation(VerPassID, "position");
-    glEnableVertexAttribArray(posAttribv);
-    glVertexAttribPointer(
-            0,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            0,  
-            (void*)0
-        );
-        glEnableVertexAttribArray(1); //use UV coords
-        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer[2]);
-        glVertexAttribPointer(
-            1,
-            2,
-            GL_FLOAT,
-            GL_FALSE,
-            0,  
-            (void*)0
-        );
-        glDrawArrays(GL_TRIANGLES,0,6);
-        glDisableVertexAttribArray(0);
+    int ni = pow(16.0f, (float)i);
+    if(usingA){
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[4]); //write to B
+        glViewport(0,0,PuppetWidth, PuppetHeight);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+        glUseProgram(VerPassID);
+        glUniform1i(PuppetHeightID, PuppetHeight);
+        glUniform1i(MiID, ni);
+        glActiveTexture(GL_TEXTURE0); //load in screen texture
+        glBindTexture(GL_TEXTURE_2D, depthTexture[3]);
+    }
+    else{
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[3]); //write to A
+        glViewport(0,0,PuppetWidth, PuppetHeight);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+        glUseProgram(VerPassID);
+        glUniform1i(PuppetHeightID, PuppetHeight);
+        glUniform1i(MiID, ni);
+        glActiveTexture(GL_TEXTURE0); //load in screen texture
+        glBindTexture(GL_TEXTURE_2D, depthTexture[4]);
+    }
+        DrawScreenQuad(vertexbuffer[2], uvbuffer[2], VerPassID );
 
-    
-        usingA = !usingA;
+
+        
+            usingA = !usingA;
 
 }  
 
@@ -395,30 +339,8 @@ else{
         glBindTexture(GL_TEXTURE_2D, depthTexture[0]);
         glUniform3fv(LightID,1,&LightPos[0]);
 
-        glEnableVertexAttribArray(0); //draw quad with textures mapped on.
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer[2]);
-        GLint posAttrib = glGetAttribLocation(programID, "position");
-        glEnableVertexAttribArray(posAttrib);
-        glVertexAttribPointer(
-            0,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            0,  
-            (void*)0
-        );
-        glEnableVertexAttribArray(1); //use UV coords
-        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer[2]);
-        glVertexAttribPointer(
-            1,
-            2,
-            GL_FLOAT,
-            GL_FALSE,
-            0,  
-            (void*)0
-        );
-        glDrawArrays(GL_TRIANGLES,0,6);
-        glDisableVertexAttribArray(0);
+    DrawScreenQuad(vertexbuffer[2], uvbuffer[2], programID );
+ 
 
         glfwSwapBuffers(window);
         glfwPollEvents();

@@ -17,5 +17,6 @@ void write_to_colour_buffer(GLuint framebuffer, GLuint textureID, GLuint vertexb
 glm::mat4 GetLightCornerMatrix(float LightLength, glm::vec3 LightCentre);
 void initialize_float_colour_buffer(GLuint framebuffer, GLuint renderedTexture, int width, int height);
 void CreateIntegralImage(unsigned char *InputImage, int width, int height, float **IntegralImage);
+void DrawScreenQuad(GLuint vertexbuffer, GLuint uvbuffer, GLuint programID );
 
 #endif

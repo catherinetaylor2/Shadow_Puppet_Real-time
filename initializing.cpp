@@ -189,3 +189,30 @@ void CreateIntegralImage(unsigned char *InputImage, int width, int height, float
         }
     }
 }
+
+void DrawScreenQuad(GLuint vertexbuffer, GLuint uvbuffer, GLuint programID ){
+    glEnableVertexAttribArray(0); //draw quad with textures mapped on.
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    int posAttrib = glGetAttribLocation(programID, "position");
+    glEnableVertexAttribArray(posAttrib);
+    glVertexAttribPointer(
+            0,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            0,  
+            (void*)0
+        );
+        glEnableVertexAttribArray(1); //use UV coords
+        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+        glVertexAttribPointer(
+            1,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            0,  
+            (void*)0
+        );
+        glDrawArrays(GL_TRIANGLES,0,6);
+        glDisableVertexAttribArray(0);
+}
