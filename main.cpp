@@ -200,8 +200,10 @@ int main(int argc, char* argv[] ){
     GLuint CornerID = glGetUniformLocation(VisibilityCalculationID, "Corners");
     GLuint PuppetCornerID = glGetUniformLocation(VisibilityCalculationID, "PuppetCorners");
     GLuint blurringPuppetTextureID = glGetUniformLocation(VisibilityCalculationID, "puppet_texture");
+    GLuint depthTextureID = glGetUniformLocation(VisibilityCalculationID, "depthTexture");
     glUseProgram(VisibilityCalculationID); 
     glUniform1i(blurringPuppetTextureID, 0);
+    glUniform1i(depthTextureID,1);
 
     glUseProgram(ScreenProgramID); //create screen texture with lighting model
     GLint posAttribs = glGetAttribLocation(ScreenProgramID, "position");
