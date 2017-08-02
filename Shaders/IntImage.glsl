@@ -9,7 +9,7 @@ uniform int Ni;
 uniform int VerOrHor;
 
 void main(){
-
+    
     if(VerOrHor == 0){ //then horizontal pass
         vec2 UVleft[16];
         for(int i=0; i<16; i++){

@@ -16,10 +16,10 @@ void main(){
     vec3 n = vec3(0,0,-1.0f);
     vec3 l = normalize(LightDir);
     float diffuseCoeff = 1.3f*pow(dot(n,l),10.0f);
-    float depthVal = 1 - texture(depth, UV).w;
-    float InnerVal = min((depthVal*texture(depthTexture_outer, UV).r/4.0f), 1.0f);
-    float OuterVal = min(texture(depthTexture,UV).r*depthVal, 1.0f);
+    float depthVal =1- texture(depth, vec2(1-UV.x, UV.y)).w;
+    float InnerVal = min((depthVal*texture(depthTexture_outer, vec2(1-UV.x, UV.y)).r/4.0f), 1.0f);
+    float OuterVal = min(texture(depthTexture,vec2(1-UV.x, UV.y)).r*depthVal, 1.0f);
     
-    colour = diffuseCoeff*texture(renderedTexture, UV).rgb*(1.0f - InnerVal)*(1.0f - OuterVal);
+    colour = diffuseCoeff*texture(renderedTexture, vec2(1-UV.x, UV.y)).rgb*(1.0f - InnerVal)*(1.0f - OuterVal);
 
 }

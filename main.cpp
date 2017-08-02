@@ -87,21 +87,21 @@ int main(int argc, char* argv[] ){
     float LightLengthOuter = 0.1f;
     glm::mat4 LightCornersOuter =GetLightCornerMatrix(LightLengthOuter, LightPosOuter);
 
-    glm::vec3 LightInvDir = glm::vec3(0.0f, 0, -10); //find objects which occlude the light source
+    glm::vec3 LightInvDir = glm::vec3(0.0f, 0, 20); //find objects which occlude the light source
     glm::mat4 depthProjMatrix = glm::perspective(
-        glm::radians (40.0f),         //FOV
+        glm::radians (45.0f),         //FOV
         (float)width/(float)height, // Aspect Ratio. 
         0.1f,        // Near clipping plane. 
-        50.0f       // Far clipping plane.
+        100.0f       // Far clipping plane.
     );
-    glm::mat4 depthViewMatrix = glm::lookAt(LightInvDir, glm::vec3(0,0,1), glm::vec3(0,1,0));
+    glm::mat4 depthViewMatrix = glm::lookAt(LightInvDir, glm::vec3(0,0,0), glm::vec3(0,1,0));
     glm::mat4 depthMVP = depthProjMatrix*depthViewMatrix;
 
     float RotAngle = 0.0f; //set up initial rotation matrix
-    glm::mat4 rotation = {  cos(RotAngle), sin(RotAngle), 0.0f, 0.0f,
-                            - sin(RotAngle), cos(RotAngle),0.0f, 0.0f,
-                            0.0f, 0.0f,1.0f, 0.0f,
-                            0.0f, 0.0f, 0.0f,1.0f,};
+    glm::mat4 rotation = {cos(RotAngle), sin(RotAngle), 0.0f, 0.0f,
+                        - sin(RotAngle), cos(RotAngle),0.0f, 0.0f,
+                        0.0f, 0.0f,1.0f, 0.0f,
+                        0.0f, 0.0f, 0.0f,1.0f,};
 
     float ScreenVer [] = { //quad filling whole screen with only 2 triangles
         -1.0f,-1.0f, 0.0f,
@@ -267,7 +267,7 @@ int main(int argc, char* argv[] ){
             DrawScreenQuad(vertexbuffer[2], uvbuffer[2], IntegralImageID );        
             usingA = !usingA;
         }  
-  //--------------------------------------------------------------------------------------------------  
+//   //--------------------------------------------------------------------------------------------------  
 
         glUseProgram(VisibilityCalculationID); //created blurred inside of shadow
         glViewport(0,0,width, height);
