@@ -80,7 +80,7 @@ int main(int argc, char* argv[] ){
    
 //light data
     glm::vec3 LightPos = glm::vec3(0.0f,0.0f,60.0f);
-    float LightLength = 1.5f;
+    float LightLength = 1.75f;
     glm::mat4 LightCorners =GetLightCornerMatrix(LightLength, LightPos);
 
     glm::vec3 LightPosOuter = glm::vec3(0.0f,0.0f,30.0f);
@@ -89,12 +89,12 @@ int main(int argc, char* argv[] ){
 
     glm::vec3 LightInvDir = glm::vec3(0.0f, 0, 20); //find objects which occlude the light source
     glm::mat4 depthProjMatrix = glm::perspective(
-        glm::radians (45.0f),         //FOV
+        glm::radians (50.0f),         //FOV
         (float)width/(float)height, // Aspect Ratio. 
         0.1f,        // Near clipping plane. 
         100.0f       // Far clipping plane.
     );
-    glm::mat4 depthViewMatrix = glm::lookAt(LightInvDir, glm::vec3(0,0,0), glm::vec3(0,1,0));
+    glm::mat4 depthViewMatrix = glm::lookAt(LightInvDir, glm::vec3(0,0,0), glm::vec3(0,1,0)); //from POV of light source
     glm::mat4 depthMVP = depthProjMatrix*depthViewMatrix;
 
     float RotAngle = 0.0f; //set up initial rotation matrix
@@ -267,7 +267,7 @@ int main(int argc, char* argv[] ){
             DrawScreenQuad(vertexbuffer[2], uvbuffer[2], IntegralImageID );        
             usingA = !usingA;
         }  
-//   //--------------------------------------------------------------------------------------------------  
+//--------------------------------------------------------------------------------------------------  
 
         glUseProgram(VisibilityCalculationID); //created blurred inside of shadow
         glViewport(0,0,width, height);
