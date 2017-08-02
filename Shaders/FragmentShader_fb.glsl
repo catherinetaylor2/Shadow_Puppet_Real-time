@@ -8,9 +8,6 @@ in vec2 UV;
 in float Z;
 
 void main() { 
-  float depth =1.0f;
-  if((texture(puppet_texture, UV).x)==0.0f){
-    depth=1.0f/Z; 
-  }
+  float depth = Z/12.0f; 
   colour = vec4(1,1,1,depth) -vec4(texture(puppet_texture, UV).rgb,0);
 } 
