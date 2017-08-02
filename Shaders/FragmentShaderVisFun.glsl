@@ -6,7 +6,6 @@ in vec2 dimRatio;
 in mat4 LightCornerVertices;
 in vec4 POI;
 in mat4 QuadCorners;
-in vec2 st;
 
 uniform sampler2D renderedTexture; 
 
@@ -37,7 +36,6 @@ int NumberOfPixels(vec2 UV[4], vec2 res){
     return (c);
 }
 float Visibility(vec2 UV[4], int NumberOfPixels, sampler2D tex, vec2 res){
-
     for(int i=0; i<4; i++){
         UV[i].x = UV[i].x - 1.0f/res.x*float((i+1)%2);
         UV[i].x = (UV[i].x)*float(UV[i].x>0.0f)*float(UV[i].x<1.0f)+float(UV[i].x>1.0f);
@@ -45,8 +43,7 @@ float Visibility(vec2 UV[4], int NumberOfPixels, sampler2D tex, vec2 res){
         UV[i].y = (UV[i].y)*float(UV[i].y>0.0f)*float(UV[i].y<1.0f)+float(UV[i].y>1.0f);
 
     }
-
-float S = texture(tex, UV[3]).r - texture(tex, UV[1]).r -texture(tex, UV[2]).r +texture(tex, UV[0]).r;
+    float S = texture(tex, UV[3]).r - texture(tex, UV[1]).r -texture(tex, UV[2]).r +texture(tex, UV[0]).r;
     float visfactor = S / float(NumberOfPixels);
     return visfactor;
 }
@@ -58,19 +55,15 @@ void main(){
     float height = QuadCorners[0].y -  QuadCorners[2].y;
     vec3 IntersectionPoints [4];
     vec3 RayDirection [4]; 
+    vec2 UVcoords[4];
 
     for(int i=0;i<4;++i){
         RayDirection[i] = normalize((LightCornerVertices[i] - POI).xyz);
         IntersectionPoints[i] = FindIntersectionPoint(RayDirection[i], POI.xyz, QuadNormal, QuadCorners[0].xyz);
-    }
-    
-    vec2 UVcoords[4];
-    for(int i=0; i<4;++i){
-        UVcoords[i] = getUV(IntersectionPoints[i], QuadCorners[2].xyz, width, height);
+         UVcoords[i] = getUV(IntersectionPoints[i], QuadCorners[2].xyz, width, height);
     }
 
-    int  i = NumberOfPixels(UVcoords, dimRatio);
-    float vis = Visibility( UVcoords,i, renderedTexture, dimRatio);
-    colour = vec3(vis,0,0); //colour depends on distance between light and screen.
-        
+    int area = NumberOfPixels(UVcoords, dimRatio);
+    float vis = Visibility( UVcoords,area, renderedTexture, dimRatio);
+    colour = vec3(vis,0,0);         
 }
