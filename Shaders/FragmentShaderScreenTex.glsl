@@ -11,6 +11,6 @@ void main() {
   vec3 LightDir = 5*V - L;
   vec3 n = vec3(0,0,-1.0f);
   vec3 l = normalize(LightDir);
-  float diffuseCoeff = pow(dot(n,l),100.0f);
+  float diffuseCoeff = pow(dot(n,l),200.0f)+0.2f;
   color = diffuseCoeff*vec3(1.1*texture(screenTexture, UV).r, texture(screenTexture, UV).g, texture(screenTexture, UV).b);
 } 
