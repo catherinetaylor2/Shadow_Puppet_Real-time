@@ -33,7 +33,7 @@ int main(int argc, char* argv[] ){
     unsigned char * ScreenTextureData, *PuppetTextureData; 
 	int textureWidth, textureHeight, PuppetWidth, PuppetHeight;
 	ScreenTextureData = readBMP("Textures/sheet.bmp", &textureWidth, &textureHeight); //screen texture data
-    PuppetTextureData = readBMP("Textures/ray_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data  
+    PuppetTextureData = readBMP("Textures/dino_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data  
 
     float *VerticesPuppet, *NormalsPuppet, *TexturesPuppet, *VerticesScreen, *NormalsScreen, *TexturesScreen; 
     int NumberOfPuppetFaces, *FaceVerticesPuppet, *FaceNormalsPuppet, *FaceTexturesPuppet, NumberOfPuppetVertices, NumberOfScreenFaces, *FaceVerticesScreen, *FaceNormalsScreen, *FaceTexturesScreen, NumberOfScreenVertices;
@@ -80,7 +80,7 @@ int main(int argc, char* argv[] ){
    
 //light data
     glm::vec3 LightPos = glm::vec3(0.0f,0.0f,60.0f);
-    float LightLength = 2.0f;
+    float LightLength = 1.75f;
     glm::mat4 LightCorners =GetLightCornerMatrix(LightLength, LightPos);
 
     glm::vec3 LightPosOuter = glm::vec3(0.0f,0.0f,30.0f);
