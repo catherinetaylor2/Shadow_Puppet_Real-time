@@ -12,5 +12,5 @@ out float Z;
 void main(){
     gl_Position = depthMVP*rotation*vec4(vertexPosition_modelspace, 1.0);
     UV = UVcoords;
-    Z = vertexPosition_modelspace.z;
+    Z = (depthMVP*rotation*vec4(vertexPosition_modelspace, 1.0)).z;
 } 

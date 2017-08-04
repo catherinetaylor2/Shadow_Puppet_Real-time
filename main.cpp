@@ -122,25 +122,12 @@ int main(int argc, char* argv[] ){
         0.0f, 1.0f,
     };
   
-    glm::mat4 PuppetCorners = {-1.1, 1.1, 10, 0.0f,
-            1.1, 1.1,10,0.0f,
-            -1.1, -1.1, 10, 0.0f,
+    glm::mat4 PuppetCorners = {-1.1, 1.1,5, 0.0f,
+            1.1, 1.1,5,0.0f,
+            -1.1, -1.1, 5, 0.0f,
             0,0,1,1.0f, //puppet normal
     };
-    glm::mat4 CameraMatrix = glm::lookAt(
-    glm::vec3(0,0,-10), // the position of your camera, in world space
-     glm::vec3(0,0,0),   // where you want to look at, in world space
-     glm::vec3(0,1,0)        // probably glm::vec3(0,1,0), but (0,-1,0) would make you looking upside-down, which can be great too
-);
-glm::mat4 projectionMatrix = glm::perspective(
-    glm::radians(90.0f), // The vertical Field of View, in radians: the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
-    (float)width/(float)height,       // Aspect Ratio. Depends on the size of your window. Notice that 4/3 == 800/600 == 1280/960, sounds familiar ?
-    0.1f,              // Near clipping plane. Keep as big as possible, or you'll get precision issues.
-    100.0f             // Far clipping plane. Keep as little as possible.
-);
-glm::mat4 View = glm::mat4(10.0f);
-View[3].w = 1.0f;
-glm::mat4 depthMVP2 = projectionMatrix*CameraMatrix*View;
+ 
 //-----------------------------------------------------------------------------------------------------------
 //CREATE FRAMEBUFFERS AND TEXTURES: 
 
@@ -237,13 +224,37 @@ glm::mat4 depthMVP2 = projectionMatrix*CameraMatrix*View;
 
     int  iterations = 0; //number of iterations
     double StartTime = glfwGetTime(); //Start timer
-    int obj_file_input = 0;
+    int pose = 0;
+    float dx = 0, dy = 0, dz = 0;
     do{ //while window is open
-        ++obj_file_input;
-        if(obj_file_input>220){
-            obj_file_input = 1;
-        }
+        ++pose;
+        // if(pose>220){
+        //     pose = 1;
+        // }
     
+        if((pose < 150)||((pose>=450)&&(pose<600))){
+            dx += 0.02f; 
+            dy = 0.0f;
+            dz = 0.0f;
+        }
+        if((pose >= 150)&&(pose<450)){
+            dx -= 0.02f; 
+            dy = 0.0f;
+            dz = 0.0f;
+        }
+        if(((pose>=600)&&(pose<750))||((pose>=1000)&&(pose<1150))){
+            dz+=0.02f;
+        }
+        if((pose>=750)&&(pose<1000)){
+            dz-=0.02f;
+        }
+        rotation = {1.0f, 0, 0.0f, 0.000f,
+                    0, 1.0f,0.0f, 0.00f,
+                    0.0f, 0.0f,1.0f, 0.0f,
+                   dx, dy, dz,1.0f};
+            
+
+
         iterations++;
         glUseProgram(SceneProgramID); //use shadow map shaders   
         glViewport(0,0,PuppetWidth,PuppetHeight);    
@@ -297,7 +308,6 @@ glm::mat4 depthMVP2 = projectionMatrix*CameraMatrix*View;
         glUniform1f(heightID, PuppetHeight);
         glUniform1f(widthID, PuppetWidth);
         glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCorners[0][0]);
-     //   glUniformMatrix4fv(matID, 1, GL_FALSE, &depthMVP2[0][0]);
         glUniformMatrix4fv(PuppetCornerID, 1, GL_FALSE, &PuppetCorners[0][0]);
         write_to_colour_buffer(framebuffer[1], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribVis, NumberOfScreenFaces, ScreenLightID, LightPos);
         glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCornersOuter[0][0]);
@@ -322,11 +332,7 @@ glm::mat4 depthMVP2 = projectionMatrix*CameraMatrix*View;
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-      //  RotAngle += 0.01f; 
-        rotation = {1.0f, 0, 0.0f, 0.000f,
-                    0, 1.0f,0.0f, 0.00f,
-                    0.0f, 0.0f,1.0f, 0.0f,
-                   0.0f, 0.0f, 0.0f,1.0f,};
+    
 
     }while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0); //close if escape pressed
    

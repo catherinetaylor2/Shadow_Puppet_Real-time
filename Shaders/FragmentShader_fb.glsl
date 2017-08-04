@@ -8,6 +8,6 @@ in vec2 UV;
 in float Z;
 
 void main() { 
-  float depth =  2.5f/Z; //SORT THIS
+  float depth =  7.5f/Z; //SORT THIS
   colour = vec4(1,1,1,depth) -vec4(texture(puppet_texture, UV).rgb,0);
 } 
