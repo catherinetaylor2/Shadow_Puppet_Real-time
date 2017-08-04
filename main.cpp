@@ -228,10 +228,10 @@ int main(int argc, char* argv[] ){
     float dx = 0, dy = 0, dz = 0;
     do{ //while window is open
         ++pose;
-        // if(pose>220){
-        //     pose = 1;
-        // }
-    
+        if(pose>1800){
+            pose = 0;
+        }
+
         if((pose < 150)||((pose>=450)&&(pose<600))){
             dx += 0.02f; 
             dy = 0.0f;
@@ -242,14 +242,20 @@ int main(int argc, char* argv[] ){
             dy = 0.0f;
             dz = 0.0f;
         }
-        if(((pose>=600)&&(pose<750))||((pose>=1000)&&(pose<1150))){
+        if(((pose>=600)&&(pose<750))||((pose>=1050)&&(pose<1200))){
             dz+=0.02f;
         }
-        if((pose>=750)&&(pose<1000)){
+        if((pose>=750)&&(pose<1050)){
             dz-=0.02f;
         }
-        rotation = {1.0f, 0, 0.0f, 0.000f,
-                    0, 1.0f,0.0f, 0.00f,
+        if(((pose>=1200)&&(pose<1350))||((pose>=1650)&&(pose<1800))){
+            RotAngle += 0.002f;
+        }
+        if((pose>=1350)&&(pose<1650)){
+            RotAngle -=0.002f;
+        }
+        rotation = {cos(RotAngle), sin(RotAngle),0, 0.000f,
+                    -sin(RotAngle), cos(RotAngle),0.0f, 0.00f,
                     0.0f, 0.0f,1.0f, 0.0f,
                    dx, dy, dz,1.0f};
             
