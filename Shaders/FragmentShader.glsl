@@ -21,6 +21,6 @@ void main(){
     float OuterVal = min((depthVal*texture(depthTexture_outer, vec2(1-UV.x, UV.y)).r), 1.0f);
     float InnerVal =  min(InnerdepthVal*3.0f*texture(depthTexture,vec2(1-UV.x, UV.y)).r/1.05f, 1.0f);
     
-    colour = diffuseCoeff*texture(renderedTexture, vec2(1-UV.x, UV.y)).rgb*(1.0f - InnerVal)*(1.0f - OuterVal);
+    colour = texture(depthTexture, UV).rgb;//diffuseCoeff*texture(renderedTexture, vec2(1-UV.x, UV.y)).rgb*(1.0f - InnerVal)*(1.0f - OuterVal);
 
 }

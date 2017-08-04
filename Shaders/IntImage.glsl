@@ -14,7 +14,7 @@ void main(){
         vec2 UVleft[16];
         for(int i=0; i<16; i++){
             UVleft[i] = UV;
-            UVleft[i].x += - (1.0f/float(textureWidth)*float(Ni)*i);
+            UVleft[i].x += -  (1.0f/float(textureWidth))*float(Ni)*i;
         }
         
         colour = vec4(0,0,0,0);//(texture(CurrentTexture, UV); 
@@ -26,7 +26,7 @@ void main(){
         vec2 UVright[16];
         for(int i=0; i<16; i++){
             UVright[i] = UV;
-            UVright[i].y += (1.0f/float(textureWidth)*float(Ni)*i);
+            UVright[i].y +=  (1.0f/float(textureWidth))*float(Ni)*i;
         }
    
         colour = vec4(0,0,0,0);//(texture(CurrentTexture, UV); 

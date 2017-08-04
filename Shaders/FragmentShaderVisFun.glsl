@@ -43,7 +43,7 @@ float Visibility(vec2 UV[4], int NumberOfPixels, sampler2D tex, vec2 res){
         UV[i].y = (UV[i].y)*float(UV[i].y>0.0f)*float(UV[i].y<1.0f)+float(UV[i].y>1.0f);
 
     }
-    float S = texture(tex, UV[3]).r - texture(tex, UV[1]).r -texture(tex, UV[2]).r +texture(tex, UV[0]).r;
+    float S = texture(tex, UV[3]).r - texture(tex, UV[1]).r -texture(tex, UV[2]).r + texture(tex, UV[0]).r;
     float visfactor = S / float(NumberOfPixels);
     return visfactor;
 }
@@ -60,7 +60,7 @@ void main(){
     for(int i=0;i<4;++i){
         RayDirection[i] = normalize((LightCornerVertices[i] - POI).xyz);
         IntersectionPoints[i] = FindIntersectionPoint(RayDirection[i], POI.xyz, QuadNormal, QuadCorners[0].xyz);
-         UVcoords[i] = getUV(IntersectionPoints[i], QuadCorners[2].xyz, width, height);
+        UVcoords[i] = getUV(IntersectionPoints[i], QuadCorners[2].xyz, width, height);
     }
 
     int area = NumberOfPixels(UVcoords, dimRatio);

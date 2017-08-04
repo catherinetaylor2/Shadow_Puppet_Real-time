@@ -11,11 +11,12 @@
 #include <cmath>
 #include "shader.hpp"
 #include "BITMAP.hpp"
-#include"Read_Obj.hpp"
+#include "Read_Obj.hpp"
 #include <vector>
 #include "initializing.hpp"
 #include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
+#include <omp.h> 
 
 int main(int argc, char* argv[] ){
 
@@ -121,11 +122,25 @@ int main(int argc, char* argv[] ){
         0.0f, 1.0f,
     };
   
-    glm::mat4 PuppetCorners = {-1.1, 1.1, 4.771222, 0.0f,
-            1.1, 1.1, 4.771222,0.0f,
-            -1.1, -1.1, 4.771222, 0.0f,
+    glm::mat4 PuppetCorners = {-1.1, 1.1, 10, 0.0f,
+            1.1, 1.1,10,0.0f,
+            -1.1, -1.1, 10, 0.0f,
             0,0,1,1.0f, //puppet normal
     };
+    glm::mat4 CameraMatrix = glm::lookAt(
+    glm::vec3(0,0,-10), // the position of your camera, in world space
+     glm::vec3(0,0,0),   // where you want to look at, in world space
+     glm::vec3(0,1,0)        // probably glm::vec3(0,1,0), but (0,-1,0) would make you looking upside-down, which can be great too
+);
+glm::mat4 projectionMatrix = glm::perspective(
+    glm::radians(90.0f), // The vertical Field of View, in radians: the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
+    (float)width/(float)height,       // Aspect Ratio. Depends on the size of your window. Notice that 4/3 == 800/600 == 1280/960, sounds familiar ?
+    0.1f,              // Near clipping plane. Keep as big as possible, or you'll get precision issues.
+    100.0f             // Far clipping plane. Keep as little as possible.
+);
+glm::mat4 View = glm::mat4(10.0f);
+View[3].w = 1.0f;
+glm::mat4 depthMVP2 = projectionMatrix*CameraMatrix*View;
 //-----------------------------------------------------------------------------------------------------------
 //CREATE FRAMEBUFFERS AND TEXTURES: 
 
@@ -198,6 +213,7 @@ int main(int argc, char* argv[] ){
     GLuint widthID = glGetUniformLocation(VisibilityCalculationID, "textureXres");
     GLuint heightID = glGetUniformLocation(VisibilityCalculationID, "textureYres");
     GLuint CornerID = glGetUniformLocation(VisibilityCalculationID, "Corners");
+    GLuint matID = glGetUniformLocation(VisibilityCalculationID, "depthMVP");
     GLuint PuppetCornerID = glGetUniformLocation(VisibilityCalculationID, "PuppetCorners");
     GLuint blurringPuppetTextureID = glGetUniformLocation(VisibilityCalculationID, "puppet_texture");
     GLuint depthTextureID = glGetUniformLocation(VisibilityCalculationID, "depthTexture");
@@ -221,8 +237,13 @@ int main(int argc, char* argv[] ){
 
     int  iterations = 0; //number of iterations
     double StartTime = glfwGetTime(); //Start timer
-
+    int obj_file_input = 0;
     do{ //while window is open
+        ++obj_file_input;
+        if(obj_file_input>220){
+            obj_file_input = 1;
+        }
+    
         iterations++;
         glUseProgram(SceneProgramID); //use shadow map shaders   
         glViewport(0,0,PuppetWidth,PuppetHeight);    
@@ -250,7 +271,8 @@ int main(int argc, char* argv[] ){
             }
             DrawScreenQuad(vertexbuffer[2], uvbuffer[2], IntegralImageID );
             usingA = !usingA;
-        }  
+        }
+          
         glUniform1i(PuppetWidthID, PuppetHeight);
         for(int i=0; i<m; ++i){
             int ni = pow(16.0f, (float)i);
@@ -264,7 +286,7 @@ int main(int argc, char* argv[] ){
                 glBindFramebuffer(GL_FRAMEBUFFER, framebuffer[3]); //write to A
                 glBindTexture(GL_TEXTURE_2D, depthTexture[4]);
             }
-            DrawScreenQuad(vertexbuffer[2], uvbuffer[2], IntegralImageID );        
+            DrawScreenQuad(vertexbuffer[2], uvbuffer[2], IntegralImageID);        
             usingA = !usingA;
         }  
 //--------------------------------------------------------------------------------------------------  
@@ -275,6 +297,7 @@ int main(int argc, char* argv[] ){
         glUniform1f(heightID, PuppetHeight);
         glUniform1f(widthID, PuppetWidth);
         glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCorners[0][0]);
+     //   glUniformMatrix4fv(matID, 1, GL_FALSE, &depthMVP2[0][0]);
         glUniformMatrix4fv(PuppetCornerID, 1, GL_FALSE, &PuppetCorners[0][0]);
         write_to_colour_buffer(framebuffer[1], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribVis, NumberOfScreenFaces, ScreenLightID, LightPos);
         glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCornersOuter[0][0]);
@@ -295,15 +318,15 @@ int main(int argc, char* argv[] ){
         glUniform3fv(LightID,1,&LightPos[0]);
 
         DrawScreenQuad(vertexbuffer[2], uvbuffer[2], programID );
- 
+
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        // RotAngle += 0.01f; 
-        // rotation = {cos(RotAngle), sin(RotAngle), 0.0f, 0.0f,
-        //             - sin(RotAngle), cos(RotAngle),0.0f, 0.0f,
-        //             0.0f, 0.0f,1.0f, 0.0f,
-        //             0.0f, 0.0f, 0.0f,1.0f,};
+      //  RotAngle += 0.01f; 
+        rotation = {1.0f, 0, 0.0f, 0.000f,
+                    0, 1.0f,0.0f, 0.00f,
+                    0.0f, 0.0f,1.0f, 0.0f,
+                   0.0f, 0.0f, 0.0f,1.0f,};
 
     }while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0); //close if escape pressed
    

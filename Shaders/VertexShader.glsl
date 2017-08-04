@@ -5,6 +5,7 @@ layout(location = 1) in vec2 vertexUV;
 
 uniform vec3 LightPos;
 
+
 out vec2 UV;
 out vec3 L;
 out vec3 V;
