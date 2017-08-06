@@ -10,7 +10,10 @@ out vec2 UV;
 out float Z;
 
 void main(){
-    gl_Position = depthMVP*rotation*vec4(vertexPosition_modelspace, 1.0);
+    mat4 T = mat4(1.0f);
+    T[3].z = -vec4(vertexPosition_modelspace, 1.0).z;
+    mat4 trans =inverse(T)*rotation*T;
+    gl_Position = depthMVP*trans*vec4(vertexPosition_modelspace, 1.0);
     UV = UVcoords;
     Z = (depthMVP*rotation*vec4(vertexPosition_modelspace, 1.0)).z;
 } 

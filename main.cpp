@@ -228,7 +228,7 @@ int main(int argc, char* argv[] ){
     float dx = 0, dy = 0, dz = 0;
     do{ //while window is open
         ++pose;
-        if(pose>1800){
+        if(pose>2400){
             pose = 0;
         }
 
@@ -254,11 +254,24 @@ int main(int argc, char* argv[] ){
         if((pose>=1350)&&(pose<1650)){
             RotAngle -=0.002f;
         }
-        rotation = {cos(RotAngle), sin(RotAngle),0, 0.000f,
-                    -sin(RotAngle), cos(RotAngle),0.0f, 0.00f,
-                    0.0f, 0.0f,1.0f, 0.0f,
+        if(pose<1800){
+            rotation = {cos(RotAngle), sin(RotAngle),0, 0.000f,
+                        -sin(RotAngle), cos(RotAngle),0.0f, 0.00f,
+                        0.0f, 0.0f,1.0f, 0.0f,
+                        dx, dy, dz,1.0f};
+        }
+       if(((pose>=1800)&&(pose<1950))||(pose>=2250)){
+            RotAngle +=0.005f;
+      }
+      if((pose>=1950)&&(pose<2250)){
+          RotAngle-=0.005f;
+      }
+      if(pose>=1800){
+            rotation = {cos(RotAngle),0, sin(RotAngle), 0.0f,
+                    0.0f, 1.0f,0.0f, 0.0f,
+                    -sin(RotAngle), 0,cos(RotAngle), 0.00f,
                    dx, dy, dz,1.0f};
-            
+      }
 
 
         iterations++;
