@@ -222,25 +222,22 @@ int main(int argc, char* argv[] ){
     glUseProgram(IntegralImageID); 
     glUniform1i(InttTextureID, 0);
 
-    int  iterations = 0; //number of iterations
+    int  iterations = 0, pose = 0; //number of iterations
     double StartTime = glfwGetTime(); //Start timer
-    int pose = 0;
     float dx = 0, dy = 0, dz = 0;
     do{ //while window is open
+
+    //Animation sequence:
         ++pose;
-        if(pose>2400){
+        if(pose>2400){ //reset animation
             pose = 0;
         }
 
         if((pose < 150)||((pose>=450)&&(pose<600))){
             dx += 0.02f; 
-            dy = 0.0f;
-            dz = 0.0f;
         }
         if((pose >= 150)&&(pose<450)){
             dx -= 0.02f; 
-            dy = 0.0f;
-            dz = 0.0f;
         }
         if(((pose>=600)&&(pose<750))||((pose>=1050)&&(pose<1200))){
             dz+=0.02f;
@@ -260,18 +257,18 @@ int main(int argc, char* argv[] ){
                         0.0f, 0.0f,1.0f, 0.0f,
                         dx, dy, dz,1.0f};
         }
-       if(((pose>=1800)&&(pose<1950))||(pose>=2250)){
+        if(((pose>=1800)&&(pose<1950))||(pose>=2250)){
             RotAngle +=0.005f;
-      }
-      if((pose>=1950)&&(pose<2250)){
-          RotAngle-=0.005f;
-      }
-      if(pose>=1800){
+        }
+        if((pose>=1950)&&(pose<2250)){
+            RotAngle-=0.005f;
+        }
+        if(pose>=1800){
             rotation = {cos(RotAngle),0, sin(RotAngle), 0.0f,
-                    0.0f, 1.0f,0.0f, 0.0f,
-                    -sin(RotAngle), 0,cos(RotAngle), 0.00f,
-                   dx, dy, dz,1.0f};
-      }
+                        0.0f, 1.0f,0.0f, 0.0f,
+                        -sin(RotAngle), 0,cos(RotAngle), 0.00f,
+                        dx, dy, dz,1.0f};
+        }
 
 
         iterations++;
