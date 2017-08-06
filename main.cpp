@@ -225,7 +225,6 @@ int main(int argc, char* argv[] ){
     int  iterations = 0, pose = 0; //number of iterations
     double StartTime = glfwGetTime(); //Start timer
     float dx = 0, dy = 0, dz = 0;
-    float RotAngleY = 0.0f;
     do{ //while window is open
 
     //Animation sequence:
@@ -237,22 +236,13 @@ int main(int argc, char* argv[] ){
         
         dx += 0.02f*((pose<150) + ((pose>=450)&&(pose<600)) - ((pose >= 150)&&(pose<450)));
         dz += 0.02f*(((pose>=600)&&(pose<750)) +  ((pose>=1050)&&(pose<1200)) - ((pose>=750)&&(pose<1050)));
-        RotAngleY += 0.002f*(((pose>=1200)&&(pose<1350)) + ((pose>=1650)&&(pose<1800))  -  ((pose>=1350)&&(pose<1650)));
-        RotAngle += 0.005f*(((pose>=1800)&&(pose<1950)) + (pose>=2250) - ((pose>=1950)&&(pose<2250)));
+        RotAngle += 0.002f*(((pose>=1200)&&(pose<1350)) + ((pose>=1650)&&(pose<1800))  -  ((pose>=1350)&&(pose<1650)))+  0.005f*(((pose>=1800)&&(pose<1950)) + (pose>=2250) - ((pose>=1950)&&(pose<2250)));
 
-        rotation = {cos(RotAngleY), sin(RotAngleY), 0.0f, 0.0f,
-                    -sin(RotAngleY), cos(RotAngleY), 0.0f, 0.0f,
-                    0.0f, 0.0f,1.0f, 0.0f,
+        rotation = {cos(RotAngle), sin(RotAngle)*(pose<1800), sin(RotAngle)*(pose>=1800), 0.0f,
+                    -sin(RotAngle)*(pose<1800), cos(RotAngle)*(pose<1800)+(pose>=1800), 0.0f, 0.0f,
+                    -sin(RotAngle)*(pose>=1800), 0.0f,(pose<1800) + cos(RotAngle)*(pose>=1800), 0.0f,
                     dx, dy, dz,1.0f};
     
-        if(pose>=1800){
-            rotation = {cos(RotAngle),0, sin(RotAngle), 0.0f,
-                        0.0f, 1.0f,0.0f, 0.0f,
-                        -sin(RotAngle), 0,cos(RotAngle), 0.00f,
-                        dx, dy, dz,1.0f};
-        }
-
-
         iterations++;
         glUseProgram(SceneProgramID); //use shadow map shaders   
         glViewport(0,0,PuppetWidth,PuppetHeight);    
