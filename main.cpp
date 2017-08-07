@@ -116,7 +116,6 @@ int main(int argc, char* argv[] ){
         1.0f, 1.0f, 0.0f,
         -1.0f,1.0f, 0.0f,
     };
-
     float ScreenTex [] = { //UV coords
         0.0f, 0.0f, 
         1.0f, 0.0f, 
@@ -214,8 +213,7 @@ int main(int argc, char* argv[] ){
     write_to_colour_buffer(framebuffer[2], textureID[0], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribs, NumberOfScreenFaces, ScreenLightID, LightPos);
     
     GLuint IntegralImageID = LoadShaders("Shaders/VertexShader.glsl", "Shaders/IntImage.glsl");
-    int n = ceil(log(PuppetWidth)/log(16));
-    int m = ceil(log(PuppetHeight)/log(16));
+    int numberOfPasses = ceil(log(PuppetWidth)/log(16));
     GLuint PuppetWidthID = glGetUniformLocation(IntegralImageID, "textureWidth");
     GLuint NiID = glGetUniformLocation(IntegralImageID, "Ni");
     GLuint VerOrHor = glGetUniformLocation(IntegralImageID, "VerOrHor");
@@ -225,7 +223,7 @@ int main(int argc, char* argv[] ){
 
     int  iterations = 0, pose = 0; //number of iterations
     double StartTime = glfwGetTime(); //Start timer
-    float dx = 0, dy = 0, dz = 0;
+    float dx = 0.0f, dy = 0.0f, dz = 0.0f;
     do{ //while window is open
 
     //Animation sequence:
@@ -249,12 +247,12 @@ int main(int argc, char* argv[] ){
         write_to_shadow_map(framebuffer[3],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
         write_to_shadow_map(framebuffer[5],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
 
-//------------------------------------------------------------------------------------------------
+//CALCULATE INTEGRAL IMAGE: ----------------------------------------------------------------------------------------------------------------------
         glUseProgram(IntegralImageID);
         glViewport(0,0,PuppetWidth, PuppetHeight);
         bool usingA = true;
         glUniform1i(PuppetWidthID, PuppetWidth);
-        for(int i=0; i<n; ++i){
+        for(int i=0; i<numberOfPasses; ++i){ //horizontal passes
             int ni = pow(16.0f, (float)i);
             glUniform1i(VerOrHor, 0);
             glUniform1i(NiID, ni);
@@ -272,7 +270,7 @@ int main(int argc, char* argv[] ){
         }
           
         glUniform1i(PuppetWidthID, PuppetHeight);
-        for(int i=0; i<m; ++i){
+        for(int i=0; i<numberOfPasses; ++i){ //vertical passes
             int ni = pow(16.0f, (float)i);
             glUniform1i(VerOrHor, 1);
             glUniform1i(NiID, ni);
@@ -287,9 +285,9 @@ int main(int argc, char* argv[] ){
             DrawScreenQuad(vertexbuffer[2], uvbuffer[2], IntegralImageID);        
             usingA = !usingA;
         }  
-//--------------------------------------------------------------------------------------------------  
+//------------------------------------------------------------------------------------------------------------------------------------------------  
 
-        glUseProgram(VisibilityCalculationID); //created blurred inside of shadow
+        glUseProgram(VisibilityCalculationID); //Use integral image to determine shadow
         glViewport(0,0,width, height);
         GLint posAttribVis = glGetAttribLocation(VisibilityCalculationID, "position");
         glUniform1f(heightID, PuppetHeight);
@@ -313,13 +311,10 @@ int main(int argc, char* argv[] ){
         glActiveTexture(GL_TEXTURE3); //load in outer shadow map
         glBindTexture(GL_TEXTURE_2D, depthTexture[5]);
         glUniform3fv(LightID,1,&LightPos[0]);
-
         DrawScreenQuad(vertexbuffer[2], uvbuffer[2], programID );
 
         glfwSwapBuffers(window);
-        glfwPollEvents();
-
-    
+        glfwPollEvents();    
 
     }while(glfwGetKey(window, GLFW_KEY_ESCAPE)!=GLFW_PRESS && glfwWindowShouldClose(window)==0); //close if escape pressed
    
