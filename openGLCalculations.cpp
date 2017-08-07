@@ -8,18 +8,14 @@
 #include <glm/glm.hpp>
 
 void write_to_shadow_map(GLuint framebuffer,GLuint MVPMatrixID, glm::mat4 MVPMatrix, GLuint vertexBuffer, GLint posAttrib, int NumberOfFaces, GLuint IndexBuffer, GLuint RotationMatrixMatrixID, glm::mat4 RotationMatrix, GLuint textureID, GLuint UVbuffer){
-  
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); //bind to shadow map
     glUniformMatrix4fv(MVPMatrixID, 1, GL_FALSE, &MVPMatrix[0][0]); //load in MVP matrix
     glUniformMatrix4fv(RotationMatrixMatrixID, 1, GL_FALSE, &RotationMatrix[0][0]); //Load in rotation matrix
-
     glActiveTexture(GL_TEXTURE0); //load in textures
     glBindTexture(GL_TEXTURE_2D, textureID);
-
     glEnable(GL_DEPTH_TEST); //find depth values
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBuffer); //bind to index buffer
@@ -33,14 +29,13 @@ void write_to_shadow_map(GLuint framebuffer,GLuint MVPMatrixID, glm::mat4 MVPMat
                         );   
     glEnableVertexAttribArray(1); //use UV coords
     glBindBuffer(GL_ARRAY_BUFFER, UVbuffer);
-    glVertexAttribPointer(  1,
+    glVertexAttribPointer(  1, //UV coords
                             2,
                             GL_FLOAT,
                             GL_FALSE,
                             0,  
                             0
                         );
-
     glDrawElements(GL_TRIANGLES, 3*NumberOfFaces,  GL_UNSIGNED_INT,0); //render to depth buffer
     glDisableVertexAttribArray(0);
 }
@@ -61,16 +56,14 @@ void initialize_colour_buffer(GLuint framebuffer, GLuint renderedTexture, int wi
     }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); //important for integral img calc
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    float C [3] = {0.0,0.0,0.0};
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, C);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0); 
     
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE){
         std::cerr << "Error: frame buffer not complete \n" ; //check depth buffer is complete
+        return;
     } 
-
 }
 
 void initialize_texture(GLuint textureID, unsigned char* data, int width, int height){
@@ -91,12 +84,10 @@ void initialize_element_array_buffer(GLuint array_buffer, int size, int data [])
 }
 
 void write_to_colour_buffer(GLuint framebuffer, GLuint textureID, GLuint vertexbuffer, GLuint indexbuffer, GLuint uvbuffer, GLint posAttrib, int NumberOfFaces, GLuint LightID, glm::vec3 LightPos){
-   
     glActiveTexture(GL_TEXTURE0); //load in screen texture
     glBindTexture(GL_TEXTURE_2D, textureID);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     glUniform3fv(LightID,1,&LightPos[0]);
-
     glEnableVertexAttribArray(0); //draw quad with textures mapped on.
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexbuffer); 

@@ -244,8 +244,8 @@ int main(int argc, char* argv[] ){
         glUseProgram(SceneProgramID); //use shadow map shaders   
         glViewport(0,0,PuppetWidth,PuppetHeight);    
         GLint posAttrib_shadow = glGetAttribLocation(SceneProgramID, "position");   //REndTimeer to shadow maps:
-        write_to_shadow_map(framebuffer[3],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
-        write_to_shadow_map(framebuffer[5],depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces,indexbuffer[1],rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
+        write_to_shadow_map(framebuffer[3], depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces, indexbuffer[1], rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
+        write_to_shadow_map(framebuffer[5], depthMatrixID, depthMVP, vertexbuffer[1], posAttrib_shadow, NumberOfPuppetFaces, indexbuffer[1], rotationMatrixID, rotation, textureID[1], uvbuffer[1]); //pass blurred image to depth buffer
 
 //CALCULATE INTEGRAL IMAGE: ----------------------------------------------------------------------------------------------------------------------
         glUseProgram(IntegralImageID);
