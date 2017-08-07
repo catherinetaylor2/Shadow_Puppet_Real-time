@@ -49,7 +49,6 @@ float Visibility(vec2 UV[4], int NumberOfPixels, sampler2D tex, vec2 res){
 }
 
 void main(){
-
     vec3 QuadNormal =QuadCorners[3].xyz;
     float width = QuadCorners[1].x - QuadCorners[0].x;
     float height = QuadCorners[0].y -  QuadCorners[2].y;
@@ -63,7 +62,7 @@ void main(){
         UVcoords[i] = getUV(IntersectionPoints[i], QuadCorners[2].xyz, width, height);
     }
 
-    int area = NumberOfPixels(UVcoords, dimRatio);
-    float vis = Visibility( UVcoords,area, renderedTexture, dimRatio);
+    int PixelArea = NumberOfPixels(UVcoords, dimRatio);
+    float vis = Visibility( UVcoords, PixelArea, renderedTexture, dimRatio);
     colour = vec3(vis,0,0);         
 }

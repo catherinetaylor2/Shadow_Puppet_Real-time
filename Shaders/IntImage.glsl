@@ -17,9 +17,9 @@ void main(){
             UVleft[i].x += -  (1.0f/float(textureWidth))*float(Ni)*i;
         }
         
-        colour = vec4(0,0,0,0);//(texture(CurrentTexture, UV); 
+        colour = vec4(0.0f,0.0f,0.0f,0.0f);
         for(int i=0; i<16; i++){
-            colour+=vec4(texture(CurrentTexture, UVleft[i]).rgb,0);
+            colour+=vec4(texture(CurrentTexture, UVleft[i]).rgb,0.0f);
         }
     }
     if(VerOrHor ==1){
@@ -29,9 +29,9 @@ void main(){
             UVright[i].y +=  (1.0f/float(textureWidth))*float(Ni)*i;
         }
    
-        colour = vec4(0,0,0,0);//(texture(CurrentTexture, UV); 
+        colour = vec4(0.0f,0.0f,0.0f,0.0f);
         for(int i=0; i<16; i++){
-            colour+= vec4(texture(CurrentTexture, UVright[i]).rgb, 0);
+            colour+= vec4(texture(CurrentTexture, UVright[i]).rgb, 0.0f);
         }
     }
 }
