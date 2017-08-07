@@ -7,6 +7,12 @@
 
 ObjFile::ObjFile(std::string name){
   ObjFileName = name;
+  if ((fopen(ObjFileName.c_str(), "r"))==nullptr){
+    exist = false;
+  }
+  else{
+    exist = true;
+  }
 }
 
 void ObjFile::get_vertices(float** V){
@@ -16,7 +22,6 @@ void ObjFile::get_vertices(float** V){
   FILE * myObject;
   int vertexCount = 0, t;
   myObject = fopen(ObjFileName.c_str(), "r");
-
   while (s != "v"){
     t= fscanf(myObject, "%s %f %f %f" , str, &f1, &f2, &f3);
     s = str;  
@@ -164,7 +169,6 @@ void ObjFile::get_face_data(int** FaceVertices, int** FaceNormals, int** FaceTex
     s = str;
   }
   NumberOfFaces =faceCount-1;
-  std::cout<<"Number of mesh faces: "<<NumberOfFaces<<"\n";
   *FaceVertices = new int[3*NumberOfFaces];
   *FaceNormals = new int[3*NumberOfFaces];
   *FaceTextures = new int[3*NumberOfFaces];

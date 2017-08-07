@@ -46,8 +46,16 @@ int main(int argc, char* argv[] ){
     float *VerticesPuppet, *NormalsPuppet, *TexturesPuppet, *VerticesScreen, *NormalsScreen, *TexturesScreen; 
     int NumberOfPuppetFaces, *FaceVerticesPuppet, *FaceNormalsPuppet, *FaceTexturesPuppet, NumberOfPuppetVertices, NumberOfScreenFaces, *FaceVerticesScreen, *FaceNormalsScreen, *FaceTexturesScreen, NumberOfScreenVertices;
     ObjFile mesh_puppet("Objects/quad.obj"); //Input mesh of puppet as obj file
+    if(mesh_puppet.doesExist() == false){
+        std::cerr<<"Error: Object file does not exist \n";
+        return -1;
+    }
 	mesh_puppet.get_mesh_data(mesh_puppet, &FaceVerticesPuppet, &FaceNormalsPuppet, &FaceTexturesPuppet, &TexturesPuppet, &NormalsPuppet, &VerticesPuppet, &NumberOfPuppetFaces, &NumberOfPuppetVertices);
     ObjFile mesh_screen("Objects/plane.obj"); //Input plane with lots of triangles
+     if(mesh_screen.doesExist() == false){
+        std::cerr<<"Error: Object file does not exist \n";
+        return -1;
+    }
 	mesh_screen.get_mesh_data(mesh_screen, &FaceVerticesScreen, &FaceNormalsScreen, &FaceTexturesScreen, &TexturesScreen, &NormalsScreen, &VerticesScreen, &NumberOfScreenFaces, &NumberOfScreenVertices);
 
 	std::cout<<"Inputed files loaded \n"; //ADD IN ERROR TEST?
