@@ -29,12 +29,19 @@ int main(int argc, char* argv[] ){
 		width = 500;
 		height = 500;
 	}
-    float widthRatio = 1.0f/(float)width, heightRatio = 1.0f/(float)height; //used in blurring calculations
 
     unsigned char * ScreenTextureData, *PuppetTextureData; 
 	int textureWidth, textureHeight, PuppetWidth, PuppetHeight;
 	ScreenTextureData = readBMP("Textures/sheet.bmp", &textureWidth, &textureHeight); //screen texture data
+    if(ScreenTextureData == 0){
+        std::cerr<<"Error: Screen texture does not exist \n";
+        return -1;
+    }
     PuppetTextureData = readBMP("Textures/dino_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data  
+    if(PuppetTextureData == 0){
+        std::cerr<<"Error: Puppet texture does not exist \n";
+        return -1;
+    }
 
     float *VerticesPuppet, *NormalsPuppet, *TexturesPuppet, *VerticesScreen, *NormalsScreen, *TexturesScreen; 
     int NumberOfPuppetFaces, *FaceVerticesPuppet, *FaceNormalsPuppet, *FaceTexturesPuppet, NumberOfPuppetVertices, NumberOfScreenFaces, *FaceVerticesScreen, *FaceNormalsScreen, *FaceTexturesScreen, NumberOfScreenVertices;
