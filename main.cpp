@@ -11,7 +11,7 @@
 #include <cmath>
 #include "shader.hpp"
 #include "BITMAP.hpp"
-#include "Read_Obj.hpp"
+#include "ReadObj.hpp"
 #include <vector>
 #include "openGLCalculations.hpp"
 #include <glm/gtx/transform.hpp>
@@ -49,13 +49,13 @@ int main(int argc, char* argv[] ){
         std::cerr<<"Error: Object file does not exist \n";
         return false;
     }
-	mesh_puppet.get_mesh_data(mesh_puppet, &FaceVerticesPuppet, &FaceNormalsPuppet, &FaceTexturesPuppet, &TexturesPuppet, &NormalsPuppet, &VerticesPuppet, &NumberOfPuppetFaces, &NumberOfPuppetVertices);
+	mesh_puppet.getMeshData(mesh_puppet, &FaceVerticesPuppet, &FaceNormalsPuppet, &FaceTexturesPuppet, &TexturesPuppet, &NormalsPuppet, &VerticesPuppet, &NumberOfPuppetFaces, &NumberOfPuppetVertices);
     ObjFile mesh_screen("Objects/plane.obj"); //Input plane with lots of triangles
     if(mesh_screen.doesExist() == false){
         std::cerr<<"Error: Object file does not exist \n";
         return false;
     }
-	mesh_screen.get_mesh_data(mesh_screen, &FaceVerticesScreen, &FaceNormalsScreen, &FaceTexturesScreen, &TexturesScreen, &NormalsScreen, &VerticesScreen, &NumberOfScreenFaces, &NumberOfScreenVertices);
+	mesh_screen.getMeshData(mesh_screen, &FaceVerticesScreen, &FaceNormalsScreen, &FaceTexturesScreen, &TexturesScreen, &NormalsScreen, &VerticesScreen, &NumberOfScreenFaces, &NumberOfScreenVertices);
 	std::cout<<"Textures and mesh files loaded \n"; 
 
     if(!glfwInit()){ // initialize GLFW
@@ -230,6 +230,7 @@ int main(int argc, char* argv[] ){
         ++pose;
         if(pose>2400){ //reset animation
             pose = 0;
+            dx = 0.0f, dy = 0.0f, dz = 0.0f;
         }
         dx += 0.02f*((pose<150) + ((pose>=450)&&(pose<600)) - ((pose >= 150)&&(pose<450)));
         dz += 0.02f*(((pose>=600)&&(pose<750)) +  ((pose>=1050)&&(pose<1200)) - ((pose>=750)&&(pose<1050)));
@@ -238,7 +239,7 @@ int main(int argc, char* argv[] ){
         rotation = {cos(RotAngle), sin(RotAngle)*(pose<1800), sin(RotAngle)*(pose>=1800), 0.0f,
                     -sin(RotAngle)*(pose<1800), cos(RotAngle)*(pose<1800)+(pose>=1800), 0.0f, 0.0f,
                     -sin(RotAngle)*(pose>=1800), 0.0f,(pose<1800) + cos(RotAngle)*(pose>=1800), 0.0f,
-                    dx, dy, dz,1.0f};
+                    dx + 0.003*(rand()%10), dy+ 0.003*(rand()%10), dz+ 0.003*(rand()%10),1.0f};
     
         iterations++;
         glUseProgram(SceneProgramID); //use shadow map shaders   
@@ -326,8 +327,8 @@ int main(int argc, char* argv[] ){
 //clear up and delete buffers
     delete[] ScreenTextureData;
     delete[] PuppetTextureData;
-    ObjFile::clean_up(VerticesPuppet,NormalsPuppet, TexturesPuppet, FaceVerticesPuppet, FaceNormalsPuppet, FaceTexturesPuppet);
-    ObjFile::clean_up(VerticesScreen,NormalsScreen, TexturesScreen, FaceVerticesScreen, FaceNormalsScreen, FaceTexturesScreen);
+    ObjFile::cleanUp(VerticesPuppet,NormalsPuppet, TexturesPuppet, FaceVerticesPuppet, FaceNormalsPuppet, FaceTexturesPuppet);
+    ObjFile::cleanUp(VerticesScreen,NormalsScreen, TexturesScreen, FaceVerticesScreen, FaceNormalsScreen, FaceTexturesScreen);
     glDeleteVertexArrays(1, &VertexArrayID);
     glDeleteBuffers(3, vertexbuffer);
     glDeleteBuffers(3, uvbuffer);
