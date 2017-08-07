@@ -3,7 +3,7 @@
 #include <glew.h>
 #include <glfw3.h>
 #include <iostream>
-#include "initializing.hpp"
+#include "openGLCalculations.hpp"
 #include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
 
@@ -46,7 +46,6 @@ void write_to_shadow_map(GLuint framebuffer,GLuint MVPMatrixID, glm::mat4 MVPMat
 }
 
 void initialize_colour_buffer(GLuint framebuffer, GLuint renderedTexture, int width, int height, int i, bool isFloat){
-
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     glBindTexture(GL_TEXTURE_2D, renderedTexture); //set up inner shadow map
     if(isFloat == true){

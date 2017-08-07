@@ -4,7 +4,6 @@ layout(location = 0) in vec3 vertexPosition_modelspace;
 
 uniform float textureXres;
 uniform float textureYres;
-uniform mat4 depthMVP;
 uniform mat4 Corners;
 uniform mat4 PuppetCorners;
 

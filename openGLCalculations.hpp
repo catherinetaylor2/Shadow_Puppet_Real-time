@@ -1,5 +1,5 @@
-#ifndef initializing_hpp
-#define initializing_hpp
+#ifndef openGLCalculations_hpp
+#define openGLCalculations_hpp
 
 #include <glew.h>
 #include <glfw3.h>

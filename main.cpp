@@ -13,7 +13,7 @@
 #include "BITMAP.hpp"
 #include "Read_Obj.hpp"
 #include <vector>
-#include "initializing.hpp"
+#include "openGLCalculations.hpp"
 #include <glm/gtx/transform.hpp>
 #include <glm/glm.hpp>
 #include <omp.h> 
@@ -26,8 +26,7 @@ int main(int argc, char* argv[] ){
 		height = atoi(argv[2]);
 	}
 	else{
-		width = 500;
-		height = 500;
+		width = 500, height = 500;
 	}
 
     unsigned char * ScreenTextureData, *PuppetTextureData; 
@@ -35,12 +34,12 @@ int main(int argc, char* argv[] ){
 	ScreenTextureData = readBMP("Textures/sheet.bmp", &textureWidth, &textureHeight); //screen texture data
     if(ScreenTextureData == 0){
         std::cerr<<"Error: Screen texture does not exist \n";
-        return -1;
+        return false;
     }
     PuppetTextureData = readBMP("Textures/dino_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data  
     if(PuppetTextureData == 0){
         std::cerr<<"Error: Puppet texture does not exist \n";
-        return -1;
+        return false;
     }
 
     float *VerticesPuppet, *NormalsPuppet, *TexturesPuppet, *VerticesScreen, *NormalsScreen, *TexturesScreen; 
@@ -48,21 +47,20 @@ int main(int argc, char* argv[] ){
     ObjFile mesh_puppet("Objects/quad.obj"); //Input mesh of puppet as obj file
     if(mesh_puppet.doesExist() == false){
         std::cerr<<"Error: Object file does not exist \n";
-        return -1;
+        return false;
     }
 	mesh_puppet.get_mesh_data(mesh_puppet, &FaceVerticesPuppet, &FaceNormalsPuppet, &FaceTexturesPuppet, &TexturesPuppet, &NormalsPuppet, &VerticesPuppet, &NumberOfPuppetFaces, &NumberOfPuppetVertices);
     ObjFile mesh_screen("Objects/plane.obj"); //Input plane with lots of triangles
-     if(mesh_screen.doesExist() == false){
+    if(mesh_screen.doesExist() == false){
         std::cerr<<"Error: Object file does not exist \n";
-        return -1;
+        return false;
     }
 	mesh_screen.get_mesh_data(mesh_screen, &FaceVerticesScreen, &FaceNormalsScreen, &FaceTexturesScreen, &TexturesScreen, &NormalsScreen, &VerticesScreen, &NumberOfScreenFaces, &NumberOfScreenVertices);
-
-	std::cout<<"Inputed files loaded \n"; //ADD IN ERROR TEST?
+	std::cout<<"Textures and mesh files loaded \n"; 
 
     if(!glfwInit()){ // initialize GLFW
         std::cerr<<"Error: failed to initialize GLFW \n";
-        return -1;
+        return false;
     }
 
     glfwWindowHint(GLFW_SAMPLES,4); // select openGL version settings 
@@ -77,13 +75,13 @@ int main(int argc, char* argv[] ){
     if(window==NULL){
         std::cerr<<"Error: failed to open window";
         glfwTerminate();
-        return -1;
+        return false;
     }
     glfwMakeContextCurrent(window);
     glewExperimental = true;
     if(glewInit()!=GLEW_OK){
         std::cerr<<"Error: failed to initialize GLEW \n";
-        return -1;
+        return false;
     }
 
     GLuint VertexArrayID; //Create vertex array object and set to be current
@@ -92,16 +90,10 @@ int main(int argc, char* argv[] ){
     
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE); //set keys for window
 
-//INITIAL POSITION DATA-----------------------------------------------------------------------------------------
-   
-//light data
-    glm::vec3 LightPos = glm::vec3(0.0f,0.0f,60.0f);
-    float LightLength = 1.75f;
-    glm::mat4 LightCorners =GetLightCornerMatrix(LightLength, LightPos);
-
-    glm::vec3 LightPosOuter = glm::vec3(0.0f,0.0f,30.0f);
-    float LightLengthOuter = 0.1f;
-    glm::mat4 LightCornersOuter =GetLightCornerMatrix(LightLengthOuter, LightPosOuter);
+//SCENE SETUP: ----------------------------------------------------------------------------------------------------------------------------------
+    glm::vec3 LightPos = glm::vec3(0.0f,0.0f,60.0f), LightPosOuter = glm::vec3(0.0f,0.0f,30.0f);
+    float LightLength = 1.75f, LightLengthOuter = 0.1f;
+    glm::mat4 LightCorners = GetLightCornerMatrix(LightLength, LightPos), LightCornersOuter = GetLightCornerMatrix(LightLengthOuter, LightPosOuter);
 
     glm::vec3 LightInvDir = glm::vec3(0.0f, 0, 20); //find objects which occlude the light source
     glm::mat4 depthProjMatrix = glm::perspective(
@@ -114,10 +106,7 @@ int main(int argc, char* argv[] ){
     glm::mat4 depthMVP = depthProjMatrix*depthViewMatrix;
 
     float RotAngle = 0.0f; //set up initial rotation matrix
-    glm::mat4 rotation = {cos(RotAngle), sin(RotAngle), 0.0f, 0.0f,
-                        - sin(RotAngle), cos(RotAngle),0.0f, 0.0f,
-                        0.0f, 0.0f,1.0f, 0.0f,
-                        0.0f, 0.0f, 0.0f,1.0f,};
+    glm::mat4 rotation;
 
     float ScreenVer [] = { //quad filling whole screen with only 2 triangles
         -1.0f,-1.0f, 0.0f,
@@ -137,14 +126,13 @@ int main(int argc, char* argv[] ){
         0.0f, 1.0f,
     };
   
-    glm::mat4 PuppetCorners = {-1.1, 1.1,5, 0.0f,
-            1.1, 1.1,5,0.0f,
-            -1.1, -1.1, 5, 0.0f,
-            0,0,1,1.0f, //puppet normal
-    };
+    glm::mat4 PuppetCorners ={  -1.1, 1.1,5, 0.0f,
+                                1.1, 1.1,5,0.0f,
+                                -1.1, -1.1, 5, 0.0f,
+                                0,0,1,1.0f, //puppet normal
+                            };
  
-//-----------------------------------------------------------------------------------------------------------
-//CREATE FRAMEBUFFERS AND TEXTURES: 
+//CREATE FRAMEBUFFERS AND TEXTURES-----------------------------------------------------------------------------------------------------------
 
     GLuint textureID[2]; //create texture from inputted bitmaps
     glGenTextures(2, textureID);
@@ -159,12 +147,11 @@ int main(int argc, char* argv[] ){
     initialize_colour_buffer(framebuffer[2], depthTexture[2], width, height,0, false); //screen texture will be written to this
     initialize_colour_buffer(framebuffer[0], depthTexture[0], width, height,0, false);  //outer light buffer (shadow map)
     initialize_colour_buffer(framebuffer[1], depthTexture[1], width, height,0, false); //inner light buffer
-    initialize_colour_buffer(framebuffer[3], depthTexture[3], PuppetWidth, PuppetHeight,0, true);
-    initialize_colour_buffer(framebuffer[4], depthTexture[4], PuppetWidth, PuppetHeight,0, true);
-    initialize_colour_buffer(framebuffer[5],depthTexture[5], PuppetWidth, PuppetHeight, 1, false);
+    initialize_colour_buffer(framebuffer[3], depthTexture[3], PuppetWidth, PuppetHeight, 0, true); //used for integral image calc
+    initialize_colour_buffer(framebuffer[4], depthTexture[4], PuppetWidth, PuppetHeight, 0, true);
+    initialize_colour_buffer(framebuffer[5], depthTexture[5], PuppetWidth, PuppetHeight, 1, false); //contains dist fn
  
-//-------------------------------------------------------------------------------------------------------------
-//CREATE VERTEX AND INDEX BUFFERS:
+//CREATE VERTEX AND INDEX BUFFERS:-------------------------------------------------------------------------------------------------------------
 
     GLuint vertexbuffer[3];
     glGenBuffers(3, vertexbuffer);
@@ -184,8 +171,8 @@ int main(int argc, char* argv[] ){
     initialize_array_buffer(vertexbuffer[2], sizeof(ScreenVer), ScreenVer); //buffers for final screen data
     initialize_array_buffer(uvbuffer[2], sizeof(ScreenTex),ScreenTex);
  
-//---------------------------------------------------------------------------------------------------------------------------------------------------
-//LOAD SHADERS:
+//LOAD SHADERS:---------------------------------------------------------------------------------------------------------------------------------------------------
+
     GLuint programID = LoadShaders("Shaders/VertexShader.glsl", "Shaders/FragmentShader.glsl"); //load screen shaders
     GLuint LightID = glGetUniformLocation(programID, "LightPos");
     GLuint ScreenTextureID = glGetUniformLocation(programID, "renderedTexture"); //three textures inputted to fragment shader
@@ -215,7 +202,6 @@ int main(int argc, char* argv[] ){
     GLuint widthID = glGetUniformLocation(VisibilityCalculationID, "textureXres");
     GLuint heightID = glGetUniformLocation(VisibilityCalculationID, "textureYres");
     GLuint CornerID = glGetUniformLocation(VisibilityCalculationID, "Corners");
-    GLuint matID = glGetUniformLocation(VisibilityCalculationID, "depthMVP");
     GLuint PuppetCornerID = glGetUniformLocation(VisibilityCalculationID, "PuppetCorners");
     GLuint blurringPuppetTextureID = glGetUniformLocation(VisibilityCalculationID, "puppet_texture");
     GLuint depthTextureID = glGetUniformLocation(VisibilityCalculationID, "depthTexture");
@@ -247,8 +233,6 @@ int main(int argc, char* argv[] ){
         if(pose>2400){ //reset animation
             pose = 0;
         }
-
-        
         dx += 0.02f*((pose<150) + ((pose>=450)&&(pose<600)) - ((pose >= 150)&&(pose<450)));
         dz += 0.02f*(((pose>=600)&&(pose<750)) +  ((pose>=1050)&&(pose<1200)) - ((pose>=750)&&(pose<1050)));
         RotAngle += 0.002f*(((pose>=1200)&&(pose<1350)) + ((pose>=1650)&&(pose<1800))  -  ((pose>=1350)&&(pose<1650)))+  0.005f*(((pose>=1800)&&(pose<1950)) + (pose>=2250) - ((pose>=1950)&&(pose<2250)));
