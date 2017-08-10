@@ -36,7 +36,7 @@ int main(int argc, char* argv[] ){
         std::cerr<<"Error: Screen texture does not exist \n";
         return false;
     }
-    PuppetTextureData = readBMP("Textures/dino_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data  
+    PuppetTextureData = readBMP("Textures/turtle_texture.bmp", &PuppetWidth, &PuppetHeight); //puppet texture data  
     if(PuppetTextureData == 0){
         std::cerr<<"Error: Puppet texture does not exist \n";
         return false;
@@ -91,9 +91,9 @@ int main(int argc, char* argv[] ){
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE); //set keys for window
 
 //SCENE SETUP: ----------------------------------------------------------------------------------------------------------------------------------
-    glm::vec3 LightPos = glm::vec3(0.0f,0.0f,60.0f), LightPosOuter = glm::vec3(0.0f,0.0f,30.0f);
-    float LightLength = 1.75f, LightLengthOuter = 0.1f;
-    glm::mat4 LightCorners = GetLightCornerMatrix(LightLength, LightPos), LightCornersOuter = GetLightCornerMatrix(LightLengthOuter, LightPosOuter);
+    glm::vec3 LightPos = glm::vec3(0.0f,0.0f,60.0f), LightPosInner = glm::vec3(0.0f,0.0f, 45.0f);
+    float LightLength = 1.75f, LightLengthInner = 0.1f;
+    glm::mat4 LightCorners = GetLightCornerMatrix(LightLength, LightPos), LightCornersInner = GetLightCornerMatrix(LightLengthInner, LightPosInner);
 
     glm::vec3 LightInvDir = glm::vec3(0.0f, 0, 20); //find objects which occlude the light source
     glm::mat4 depthProjMatrix = glm::perspective(
@@ -224,22 +224,23 @@ int main(int argc, char* argv[] ){
     int  iterations = 0, pose = 0; //number of iterations
     double StartTime = glfwGetTime(); //Start timer
     float dx = 0.0f, dy = 0.0f, dz = 0.0f;
+    
     do{ //while window is open
 
     //Animation sequence:
         ++pose;
-        if(pose>2400){ //reset animation
+        if(pose>2200){ //reset animation
             pose = 0;
             dx = 0.0f, dy = 0.0f, dz = 0.0f;
         }
-        dx += 0.02f*((pose<150) + ((pose>=450)&&(pose<600)) - ((pose >= 150)&&(pose<450)));
+        dx += 0.05f*((pose<150) + ((pose>=450)&&(pose<600)) - ((pose >= 150)&&(pose<450)));
         dz += 0.02f*(((pose>=600)&&(pose<750)) +  ((pose>=1050)&&(pose<1200)) - ((pose>=750)&&(pose<1050)));
-        RotAngle += 0.002f*(((pose>=1200)&&(pose<1350)) + ((pose>=1650)&&(pose<1800))  -  ((pose>=1350)&&(pose<1650)))+  0.005f*(((pose>=1800)&&(pose<1950)) + (pose>=2250) - ((pose>=1950)&&(pose<2250)));
+        RotAngle += 0.005f*(((pose>=1200)&&(pose<1300)) + ((pose>=1500)&&(pose<1600))  -  ((pose>=1300)&&(pose<1500)))+  0.005f*(((pose>=1600)&&(pose<1750)) + (pose>=2050) - ((pose>=1750)&&(pose<2050)));
 
-        rotation = {cos(RotAngle), sin(RotAngle)*(pose<1800), sin(RotAngle)*(pose>=1800), 0.0f,
-                    -sin(RotAngle)*(pose<1800), cos(RotAngle)*(pose<1800)+(pose>=1800), 0.0f, 0.0f,
-                    -sin(RotAngle)*(pose>=1800), 0.0f,(pose<1800) + cos(RotAngle)*(pose>=1800), 0.0f,
-                    dx + 0.003*(rand()%10), dy+ 0.003*(rand()%10), dz+ 0.003*(rand()%10),1.0f};
+        rotation = {cos(RotAngle), sin(RotAngle)*(pose<1600), sin(RotAngle)*(pose>=1600), 0.0f,
+                    -sin(RotAngle)*(pose<1600), cos(RotAngle)*(pose<1600)+(pose>=1600), 0.0f, 0.0f,
+                    -sin(RotAngle)*(pose>=1600), 0.0f,(pose<1600) + cos(RotAngle)*(pose>=1600), 0.0f,
+                    dx + 0.0025*(rand()%10*2 - 1), dy+ 0.0025*(rand()%10*2 - 1), dz+ 0.0025*(rand()%10),1.0f};
     
         iterations++;
         glUseProgram(SceneProgramID); //use shadow map shaders   
@@ -296,7 +297,7 @@ int main(int argc, char* argv[] ){
         glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCorners[0][0]);
         glUniformMatrix4fv(PuppetCornerID, 1, GL_FALSE, &PuppetCorners[0][0]);
         write_to_colour_buffer(framebuffer[1], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribVis, NumberOfScreenFaces, ScreenLightID, LightPos);
-        glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCornersOuter[0][0]);
+        glUniformMatrix4fv(CornerID, 1, GL_FALSE, &LightCornersInner[0][0]);
         write_to_colour_buffer(framebuffer[0], depthTexture[3], vertexbuffer[0], indexbuffer[0], uvbuffer[0], posAttribVis, NumberOfScreenFaces, ScreenLightID, LightPos);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0); //bind to default frame buffer
