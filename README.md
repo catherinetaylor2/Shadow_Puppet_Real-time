@@ -1,6 +1,6 @@
 # Shadow Puppet Real-time
 
-Using openGL and integral images to produce virtual shadow puppets in real-time as part of my EngD dissertation.
+Using OpenGL and summed area tables to produce virtual shadow puppets in real-time as part of my EngD dissertation.
 
 ![gitimages](https://user-images.githubusercontent.com/25514442/29090356-3a4a63ae-7c77-11e7-910b-283dbf2e6e5d.png)
 
@@ -23,8 +23,8 @@ This software uses:
   
 ### Output:
 This software can produce:
-  * still images
-  * animations
+  * still images (HD frame rate ~ 260fps)
+  * animations (HD frame rate ~ 52fps)
 
 ### Dependencies:
 
